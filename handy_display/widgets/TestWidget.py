@@ -9,18 +9,25 @@ from handy_display.widgets.IWidget import IWidget
 
 class TestWidget(IWidget):
 
-    def __init__(self):
+    def __init__(self, gui):
+        super().__init__(gui)
         self.bg_color = (255, 255, 255)
 
         self.group = Group()
         self.test = TestSprite(50, 50, 50)
         self.group.add(self.test)
 
+    def on_show(self):
+        print("Adding test widget")
+
     def draw(self, screen_surface: Surface):
         screen_surface.fill(self.bg_color)
 
         self.group.draw(screen_surface)
         return
+
+    def on_hide(self):
+        print("Removing test widget")
 
     def click_event(self, x: int, y: int):
         if self.test.rect.collidepoint(x, y):
@@ -29,4 +36,5 @@ class TestWidget(IWidget):
             self.test.rect.y = random.randint(50, 150)
             self.test.rect.w = random.randint(50, 150)
             self.test.rect.h = random.randint(50, 100)
+            self.gui.request_widget("weather")
         return

@@ -2,7 +2,10 @@ import platform
 import sys
 
 from Options import Options, MirrorType
-import PygameGUI
+from PygameGUI import PygameGUI
+from handy_display import Secrets
+from handy_display.widgets.TestWidget import TestWidget
+from handy_display.widgets.WeatherWidget import WeatherWidget
 
 
 #
@@ -19,20 +22,29 @@ def get_relevant_mirror(mirror_type):
 
 # Main loop
 def start():
+    print("")
     print("Starting up handy display...")
     print("Running on platform: " + str(platform.platform()))
+    print("")
 
     options = Options(sys.argv)
     mirror = get_relevant_mirror(options.screen_type)
 
-    PygameGUI.init(mirror)
+    gui = PygameGUI(mirror)
+
+    gui.widgets["test"] = TestWidget(gui)
+    gui.widgets["weather"] = WeatherWidget(gui)
+
+    gui.request_widget("test")
 
     # https://stackoverflow.com/questions/6087484/how-to-capture-pygame-screen
     # https://realpython.com/pygame-a-primer/
     # https://stackoverflow.com/questions/34347973/run-pygame-without-a-window-gui
 
-    while PygameGUI.running:
-        PygameGUI.refresh()
+    print("Startup done!")
+    print("")
+    while gui.running:
+        gui.refresh()
 
     print("Exited")
 

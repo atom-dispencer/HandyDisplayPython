@@ -1,76 +1,91 @@
 import pygame
 from pygame import Surface
 
-from mirrors.IMirror import IMirror
-from mirrors.PygameOnlyMirror import PygameOnlyMirror
+from handy_display.widgets.WeatherWidget import WeatherWidget
 from widgets.IWidget import IWidget
 from widgets.TestWidget import TestWidget
 
-mirror: IMirror = PygameOnlyMirror()
-running: bool = False
-screen_surface: Surface = None
-current_widget: IWidget
 
+class PygameGUI:
 
-def init(mirror_in):
-    print("Creating PygameGUI with mirror " + str(mirror_in))
+    # noinspection PyTypeChecker
+    def __init__(self, mirror_in):
+        print("Creating PygameGUI with mirror " + str(mirror_in))
 
-    global mirror
-    global running
-    global screen_surface
+        self.mirror = mirror_in
+        self.running: bool = False
+        self.screen_surface: Surface = None  # The pygame surface backing the GUI
+        self.widgets = {}
+        self.current_widget_name = None
+        self.next_widget_name = None
 
-    global current_widget
+        self.mirror.add_touch_callback("PygameGUI_default", lambda x, y: self.click_event(x, y))
 
-    mirror = mirror_in
-    mirror.add_touch_callback("PygameGUI_default", click_event)
+        pygame.init()
+        self.screen_surface = pygame.display.set_mode((self.mirror.width, self.mirror.height))
+        pygame.display.set_caption("Handy Display (PygameGUI)")
 
-    pygame.init()
-    screen_surface = pygame.display.set_mode((mirror.width, mirror.height))
-    pygame.display.set_caption("Handy Display (PygameGUI)")
+        self.next_widget_name = None
+        self.running = True
 
-    current_widget = TestWidget()
-    running = True
+    def click_event(self, x: int, y: int):
+        # Check overlay collisions first
+        self.get_current_widget().click_event(x, y)
 
+    def request_widget(self, name: str):
+        self.next_widget_name = name
 
-def click_event(x: int, y: int):
-    # Check overlay collisions first
-    current_widget.click_event(x, y)
+    def get_current_widget(self) -> IWidget:
+        return self.widgets[self.current_widget_name] if self.current_widget_name is not None else None
 
+    def refresh(self):
+        if not self.running:
+            return
 
-def refresh():
-    if not running:
-        return
+        # Switch in the next queued widget
+        if self.next_widget_name is not None:
+            if self.next_widget_name in self.widgets.keys():
+                print("Swapping widget '{old}' for '{new}'".format(old=self.current_widget_name, new=self.next_widget_name))
 
-    # Respond to events
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            shutdown()
-            return  # Prevent further pygame calls
-        elif event.type == pygame.MOUSEBUTTONDOWN:
-            position = pygame.mouse.get_pos()
-            click_event(position[0], position[1])
+                old = self.get_current_widget()
+                if old is not None:
+                    old.on_hide()
+                self.current_widget_name = self.next_widget_name
 
-    current_widget.draw(screen_surface)
-    draw_overlay()
+                new = self.get_current_widget()
+                new.on_show()
+                self.next_widget_name = None
+            else:
+                print("No known widget of name {w}".format(w=self.next_widget_name))
+                self.next_widget_name = None
 
-    # Flip the display buffers (or something like that)
-    pygame.display.flip()
+        # Respond to events
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.shutdown()
+                return  # Prevent further pygame calls
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                position = pygame.mouse.get_pos()
+                self.click_event(position[0], position[1])
 
-    # Push to the mirror
-    if mirror.requesting_frame:
-        pixels3d = pygame.surfarray.pixels3d(screen_surface)
-        mirror.push_frame_data(pixels3d)
+        self.get_current_widget().draw(self.screen_surface)
+        self.draw_overlay()
 
+        # Flip the display buffers (or something like that)
+        pygame.display.flip()
 
-def draw_overlay():
-    pygame.draw.rect(screen_surface, (0, 0, 0), (0, 50, 50, 50))
+        # Push to the mirror
+        if self.mirror.requesting_frame:
+            pixels3d = pygame.surfarray.pixels3d(self.screen_surface)
+            self.mirror.push_frame_data(pixels3d)
 
+    def draw_overlay(self):
+        pygame.draw.rect(self.screen_surface, (0, 0, 0), (0, 50, 50, 50))
 
-def shutdown():
-    print("Killing PygameGUI")
-    global running
-    running = False
+    def shutdown(self):
+        print("Killing PygameGUI")
+        self.running = False
 
-    if mirror is not None:
-        mirror.shutdown()
-    pygame.quit()
+        if self.mirror is not None:
+            self.mirror.shutdown()
+        pygame.quit()
