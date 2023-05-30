@@ -1,3 +1,12 @@
+import os
+
+try:
+    import os
+    # Use this in the headless environment
+    os.environ['SDL_VIDEODRIVER'] = 'dummy'  # TODO Auto-choose video driver dummy vs. real
+except ImportError:
+    print("Unable")
+
 import pygame
 from pygame import Surface
 
@@ -43,7 +52,8 @@ class PygameGUI:
         # Switch in the next queued widget
         if self.next_widget_name is not None:
             if self.next_widget_name in self.widgets.keys():
-                print("Swapping widget '{old}' for '{new}'".format(old=self.current_widget_name, new=self.next_widget_name))
+                print("Swapping widget '{old}' for '{new}'".format(old=self.current_widget_name,
+                                                                   new=self.next_widget_name))
 
                 old = self.get_current_widget()
                 if old is not None:

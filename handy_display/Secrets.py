@@ -3,7 +3,7 @@ import os
 
 # name:value;name:value;
 # open_weather:1234;other:ABCD
-env = os.getenv("HANDY_DISPLAY")
+env = os.getenv("HandyDisplay")  # HANDY_DISPLAY
 
 all_secrets = [v.split(':') for v in env.split(';') if len(v) > 0]
 
