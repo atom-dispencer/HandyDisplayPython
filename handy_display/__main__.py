@@ -3,9 +3,8 @@ import sys
 
 from Options import Options, MirrorType
 from PygameGUI import PygameGUI
-from handy_display import Secrets
-from handy_display.widgets.TestWidget import TestWidget
-from handy_display.widgets.WeatherWidget import WeatherWidget
+from widgets.TestWidget import TestWidget
+from widgets.WeatherWidget import WeatherWidget
 
 
 #

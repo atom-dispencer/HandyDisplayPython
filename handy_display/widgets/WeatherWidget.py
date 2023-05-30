@@ -2,7 +2,6 @@ import json
 import time
 import requests
 import threading
-import _json
 
 from pygame import Surface
 

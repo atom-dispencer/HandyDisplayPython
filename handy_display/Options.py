@@ -11,7 +11,7 @@ class Options:
         if len(argv) < 2:
             raise Exception("Cannot have < 2 arguments, got: ", len(argv))
 
-        st = argv[1]
+        st = argv[1].strip()
         if st == "0" or st == "no_mirror":
             self.screen_type = MirrorType.NO_MIRROR
         elif st == "1" or st == "TFT_LCD_XPT2046_ILI9486":

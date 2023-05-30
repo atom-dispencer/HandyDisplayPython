@@ -1,9 +1,7 @@
 import pygame
 from pygame import Surface
 
-from handy_display.widgets.WeatherWidget import WeatherWidget
 from widgets.IWidget import IWidget
-from widgets.TestWidget import TestWidget
 
 
 class PygameGUI:
