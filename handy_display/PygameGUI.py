@@ -1,23 +1,20 @@
 import os
-
-try:
-    import os
-    # Use this in the headless environment
-    os.environ['SDL_VIDEODRIVER'] = 'dummy'  # TODO Auto-choose video driver dummy vs. real
-except ImportError:
-    print("Unable")
-
 import pygame
 from pygame import Surface
 
+from handy_display import Options
 from widgets.IWidget import IWidget
 
 
 class PygameGUI:
 
     # noinspection PyTypeChecker
-    def __init__(self, mirror_in):
+    def __init__(self, mirror_in, options: Options):
         print("Creating PygameGUI with mirror " + str(mirror_in))
+
+        # Use this in the headless environment
+        if options.headless:
+            os.environ['SDL_VIDEODRIVER'] = 'dummy'
 
         self.mirror = mirror_in
         self.running: bool = False
@@ -28,9 +25,19 @@ class PygameGUI:
 
         self.mirror.add_touch_callback("PygameGUI_default", lambda x, y: self.click_event(x, y))
 
-        pygame.init()
-        self.screen_surface = pygame.display.set_mode((self.mirror.width, self.mirror.height))
-        pygame.display.set_caption("Handy Display (PygameGUI)")
+        try:
+            pygame.init()
+            self.screen_surface = pygame.display.set_mode((self.mirror.width, self.mirror.height))
+            pygame.display.set_caption("Handy Display (PygameGUI)")
+        except Exception as ex:
+            print()
+            print("An error occurred while setting up the pygame GUI.")
+            print()
+            print(ex)
+            print()
+            print("If you are running in a headless environment, "
+                  "make sure you specified the 'headless' option to __main__.py")
+            quit(-100)
 
         self.next_widget_name = None
         self.running = True

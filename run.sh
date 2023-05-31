@@ -1,3 +1,3 @@
 export PYTHONPATH="${PYTHONPATH}:$(pwd)"
-python3 handy_display/__main__.py 0
+python3 -m handy_display/ TFT_LCD_XPT2046_ILI9486 headless
 read -r -p "Press any key to continue..." key

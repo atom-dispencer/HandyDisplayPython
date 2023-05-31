@@ -29,7 +29,7 @@ def start():
     options = Options(sys.argv)
     mirror = get_relevant_mirror(options.screen_type)
 
-    gui = PygameGUI(mirror)
+    gui = PygameGUI(mirror, options)
 
     gui.widgets["test"] = TestWidget(gui)
     gui.widgets["weather"] = WeatherWidget(gui)

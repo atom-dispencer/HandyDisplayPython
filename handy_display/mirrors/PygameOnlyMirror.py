@@ -3,12 +3,10 @@ from handy_display.mirrors.IMirror import IMirror
 
 class PygameOnlyMirror(IMirror):
 
-    requesting_frame = False
+    def __init__(self, gui):
+        super().__init__(480, 320, gui)
 
-    def __init__(self):
-        super().__init__(480, 320)
-
-    def push_frame_data(self, pixels3d):
+    def refresh(self, pixels3d):
         pass
 
     def shutdown(self):

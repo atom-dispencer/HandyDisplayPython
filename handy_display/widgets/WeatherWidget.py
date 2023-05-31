@@ -1,14 +1,14 @@
 import json
 import time
-import requests
 import threading
 
+import requests
 from pygame import Surface
 
 from handy_display import Secrets
 from handy_display.widgets.IWidget import IWidget
 
-TIMEOUT_NS = 5_000_000_000  # 5 second timeout #TODO Change weather timeout to >5s (revert from testing)
+TIMEOUT_NS = 5_000_000_000  # 5 second timeout  #TODO Change weather timeout to >5s (revert from testing)
 THREAD_NAME = "weather_refresh_thread"
 
 

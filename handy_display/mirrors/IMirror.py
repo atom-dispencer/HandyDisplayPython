@@ -1,20 +1,19 @@
 from abc import abstractmethod
 
+
 # Displays the contents of a RenderSpace
 class IMirror:
-
-    requesting_frame = False
-
-    def __init__(self, width, height):
+    def __init__(self, width, height, gui):
         self.width = width
         self.height = height
+        self.gui = gui
 
     def get_dimensions(self) -> (int, int):
         return self.width, self.height
 
-    # Push the new data to the frame. The input array should NOT be edited.
+    # Refresh with the pixels of the current screen
     @abstractmethod
-    def push_frame_data(self, pixels3d):
+    def refresh(self, pixels3d):
         pass
 
     # Called to shut down the mirrors
