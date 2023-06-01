@@ -24,7 +24,11 @@ except RuntimeError:
     print("Failed to initialise RPi.GPIO")
     exit(-12)
 
+# How do I give NeilAlexanderHiggins a medal? https://forums.raspberrypi.com/viewtopic.php?t=330844
 # The pi has 1 bus (#0) and 2 devices (CE0 and CE1)
+LCD_TP_BUS = 0
+LCD_DEVICE = 0
+TP_DEVICE = 1
 # Using the XPT2046 touch panel (TP) and the ILI9486 LCD chip (LCD)
 TP_IRQ = 17         # SPI1 CE1  # TP touch interrupt
 LCD_RS = 24         # -         # LCD instruction control (Instruction/Data register select)
@@ -54,9 +58,15 @@ class Mirror(IMirror):
 
         print("Testing SpiDev")
         self.spi = SpiDev()
-        self.spi.open(0, 0)
+
+        self.spi.open(LCD_TP_BUS, LCD_DEVICE)
         message = [0x00]
-        self.spi.xfer(message)
+        self.spi.writebytes2(message)
+        self.spi.close()
+
+        self.spi.open(LCD_TP_BUS, TP_DEVICE)
+        self.spi.readbytes(16)
+        self.spi.close()
 
     def get_dimensions(self) -> (int, int):
         return self.width, self.height
