@@ -6,7 +6,7 @@ Left/right reflection of top 13 rows of Pi GPIO
 The screen is designed to be able to be placed directly onto the Pi.
 These are the pins that would be connected in that case. 
 
-GPIO Screen			Scr	GPIO
+GPIO  Screen   Screen     GPIO
 -	-		--		-	-
 5V	| 2		00		1	| 3.3V
 5V	| 4		00		3	| 2
@@ -34,17 +34,20 @@ GND	| 20	00		19	| 10
 
 
 
+
+
+ === PINS ON THE DISPLAY ===
+
 Notes:
 	All GND and 5V connections appear to work
 	3.3V is insufficient to turn on
-
 
 Key:
 3				3.3V Power positive
 5				5V Power positive
 NV				NC (No connection?)
 GND				Ground
-TP_IRQ			Touch Panel Interrupt, 	active low (what's RQ? register query???)
+TP_IRQ			Touch Panel Interrupt, 	active low (what's RQ?)
 LCD_RS			LCD instruction control, instruction/data Register Selection
 LCD_SI/TP_SI	LCD/Touch Panel Serial In. SPI In.
 TP_SO			Touch Panel Serial Out. SPI Out.
@@ -67,3 +70,4 @@ TP_CS			Touch Panel Chip Select. Active low.
 22	RST			TP_SO
 24	LCD_CS		LCD_SCK/TP_SCK
 26	TP_CS		GND
+

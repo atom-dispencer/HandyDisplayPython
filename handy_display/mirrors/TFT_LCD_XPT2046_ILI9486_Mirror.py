@@ -25,9 +25,15 @@ except RuntimeError:
     exit(-12)
 
 # The pi has 1 bus (#0) and 2 devices (CE0 and CE1)
-
-# GPIO pin 22 is the TP_IRQ (Touch Panel Interrupt)
-TP_IRQ = 22
+# Using the XPT2046 touch panel (TP) and the ILI9486 LCD chip (LCD)
+TP_IRQ = 17         # SPI1 CE1  # TP touch interrupt
+LCD_RS = 24         # -         # LCD instruction control (Instruction/Data register select)
+LCD_TP_SI = 10      # SPI0 MOSI # SPI data into TP (MOSI) and LCD
+RST = 25            # -         # Reset
+TP_SO = 9           # SPI0 MISO # SPI data out (MISO) of the TP
+LCD_CS = 8          # SPI0 CE0  # Chip select (enable) for the LCD
+LCD_TP_SCK = 11     # SPI0 SCLK # Clock for SPI interface
+TP_CS = 7           # SPI0 CE1  # Chip select (enable) for the TP
 
 THREAD_NAME = "tft_lcd_spi_thread"
 
