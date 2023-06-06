@@ -3,7 +3,7 @@ import pygame
 from pygame import Surface
 
 from handy_display import Options
-from widgets.IWidget import IWidget
+from handy_display.widgets.IWidget import IWidget
 
 
 class PygameGUI:
@@ -12,19 +12,23 @@ class PygameGUI:
     def __init__(self, mirror_in, options: Options):
         print("Creating PygameGUI with mirror " + str(mirror_in))
 
-        # Use this in the headless environment
+        # Configure drivers
         if options.headless:
             os.environ['SDL_VIDEODRIVER'] = 'dummy'
+        os.environ['SDL_AUDIODRIVER'] = 'dummy'
 
+        # Setup instance variables
         self.mirror = mirror_in
         self.running: bool = False
         self.screen_surface: Surface = None  # The pygame surface backing the GUI
         self.widgets = {}
         self.current_widget_name = None
         self.next_widget_name = None
+        self.running = True
 
         self.mirror.add_touch_callback("PygameGUI_default", lambda x, y: self.click_event(x, y))
 
+        # Initialise pygame
         try:
             pygame.init()
             self.screen_surface = pygame.display.set_mode((self.mirror.width, self.mirror.height))
@@ -38,9 +42,6 @@ class PygameGUI:
             print("If you are running in a headless environment, "
                   "make sure you specified the 'headless' option to __main__.py")
             quit(-100)
-
-        self.next_widget_name = None
-        self.running = True
 
     def click_event(self, x: int, y: int):
         # Check overlay collisions first
@@ -86,13 +87,14 @@ class PygameGUI:
         self.get_current_widget().draw(self.screen_surface)
         self.draw_overlay()
 
+        if self.mirror.ready_for_next_frame():
+            # Copy the pixels to a new buffer to avoid race conditions!
+            array3d = pygame.surfarray.array3d(self.screen_surface)
+            self.mirror.next_frame(array3d)
+        self.mirror.process_events()
+
         # Flip the display buffers (or something like that)
         pygame.display.flip()
-
-        # Push to the mirror
-        if self.mirror.requesting_frame:
-            pixels3d = pygame.surfarray.pixels3d(self.screen_surface)
-            self.mirror.push_frame_data(pixels3d)
 
     def draw_overlay(self):
         pygame.draw.rect(self.screen_surface, (0, 0, 0), (0, 50, 50, 50))

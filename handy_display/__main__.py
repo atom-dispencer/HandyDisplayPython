@@ -1,22 +1,22 @@
 import platform
 import sys
 
-from Options import Options, MirrorType
-from PygameGUI import PygameGUI
-from widgets.TestWidget import TestWidget
-from widgets.WeatherWidget import WeatherWidget
+from handy_display.Options import Options, MirrorType
+from handy_display.PygameGUI import PygameGUI
+from handy_display.widgets.TestWidget import TestWidget
+from handy_display.widgets.WeatherWidget import WeatherWidget
 
 
 #
 def get_relevant_mirror(mirror_type):
     if mirror_type == MirrorType.NO_MIRROR:
-        from mirrors.PygameOnlyMirror import PygameOnlyMirror
         print("Using PygameOnlyMirror...")
-        return PygameOnlyMirror()
+        import handy_display.mirrors.PygameOnlyMirror
+        return handy_display.mirrors.PygameOnlyMirror.PygameOnlyMirror()
     if mirror_type == MirrorType.TFT_LCD_XPT2046_ILI9486:
-        from mirrors.TFT_LCD_XPT2046_ILI9486_Mirror import Mirror
         print("Using TFT_LCD_XPT2046_ILI9486_Mirror...")
-        return Mirror(0, 0, 480, 320)
+        import handy_display.mirrors.Elegoo35.Elegoo35Mirror
+        return handy_display.mirrors.Elegoo35.Elegoo35Mirror.Elegoo35Mirror(480, 320)
 
 
 # Main loop
@@ -27,8 +27,8 @@ def start():
     print("")
 
     options = Options(sys.argv)
-    mirror = get_relevant_mirror(options.screen_type)
 
+    mirror = get_relevant_mirror(options.screen_type)
     gui = PygameGUI(mirror, options)
 
     gui.widgets["test"] = TestWidget(gui)
@@ -42,8 +42,14 @@ def start():
 
     print("Startup done!")
     print("")
-    while gui.running:
-        gui.refresh()
+
+    try:
+        while gui.running:
+            gui.refresh()
+    except KeyboardInterrupt:
+        print("Interrupted by keyboard. Shutting down...")
+    finally:
+        mirror.shutdown()
 
     print("Exited")
 

@@ -21,6 +21,8 @@ class TestWidget(IWidget):
         print("Adding test widget")
 
     def draw(self, screen_surface: Surface):
+        #  print(screen_surface)
+
         screen_surface.fill(self.bg_color)
 
         self.group.draw(screen_surface)
