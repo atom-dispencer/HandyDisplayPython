@@ -28,7 +28,7 @@ except RuntimeError:
     exit(-12)
 
 THREAD_NAME = "tft_lcd_spi_thread"
-CLK_HZ = int(1e6)  # 1MHz
+CLK_HZ = int(125e3)  # 125kHz
 
 
 class Elegoo35Mirror(IMirror):
@@ -96,16 +96,9 @@ class Elegoo35Mirror(IMirror):
         GPIO.cleanup()
 
     def process_tft_touch(self):
-        samples = []
-        start = time.time()
-        while time.time() - start < 0.25:
-            sample = self.get_tft_sample()
-            samples += sample if sample is not None else []
-        print("Samples:", samples)
 
-    def get_tft_sample(self):
-        ctrl_byte = bytearray()
-        ctrl_byte.append(
+        sending_bytes = bytearray()
+        sending_bytes.append(
             get_control_byte(
                 Channels.X_POS,
                 Conversions.BIT_12,
@@ -113,52 +106,59 @@ class Elegoo35Mirror(IMirror):
                 PowerMode.POWER_DOWN_BETWEEN
             )
         )  # Control byte
-        ctrl_byte.append(0)
-        ctrl_byte.append(0)
-        ctrl_byte.append(0)
+        sending_bytes.append(0)
+        sending_bytes.append(0)
+        sending_bytes.append(0)
 
-        mask = 0b1000_0000
+        samples = []
+        start = time.time()
+        while time.time() - start < 0.25:
+            sample = self.get_tft_sample(sending_bytes)
+            if sample is not None and not all(i == 0 for i in sample):
+                samples.append(sample)
+        print("Samples:", samples)
+
+        samples_tx = []
+        start = time.time()
+        while time.time() - start < 0.25:
+            GPIO.output(Pins.TP_CS, GPIO.LOW)
+            sample = self.touch_panel_spi.transfer(sending_bytes, max_speed_hz=CLK_HZ)
+            GPIO.output(Pins.TP_CS, GPIO.HIGH)
+            if sample is not None and not all(i == 0 for i in sample):
+                samples_tx.append(sample)
+        print("SamplesTX:", samples_tx)
+
+    def get_tft_sample(self, send_buffer) -> []:
         GPIO.output(Pins.TP_CS, GPIO.LOW)
-        sample = None
-        attempt = 0
-        while sample is None and attempt < 25:
-            out_arr = []
-            for byte in ctrl_byte:
-                out_byte = 0x00
-                for i in range(8):
+        receiving_bytes = bytearray(0)
 
-                    # Serial output
-                    if byte & mask == 0:
-                        GPIO.output(Pins.LCD_TP_SI, GPIO.LOW)
-                    else:
-                        GPIO.output(Pins.LCD_TP_SI, GPIO.HIGH)
-                    byte <<= 1
+        for byte in send_buffer:
+            out_byte = 0x00
+            for i in range(8):
 
-                    # Clock pulse (The timing helps a lot!)
-                    GPIO.output(Pins.LCD_TP_SCK, GPIO.HIGH)
-                    time.sleep(0.001)
-                    GPIO.output(Pins.LCD_TP_SCK, GPIO.LOW)
-                    time.sleep(0.001)
+                # Serial output
+                if byte & 0b1000_0000 == 0:
+                    GPIO.output(Pins.LCD_TP_SI, GPIO.LOW)
+                else:
+                    GPIO.output(Pins.LCD_TP_SI, GPIO.HIGH)
+                byte <<= 1
 
-                    # Serial input
-                    if GPIO.input(Pins.TP_SO):
-                        out_byte |= 0b0000_0001
-                    if i < 7:
-                        out_byte <<= 1
+                # Clock pulse (The timing helps a lot!)
+                GPIO.output(Pins.LCD_TP_SCK, GPIO.HIGH)
+                time.sleep(0.001)
+                GPIO.output(Pins.LCD_TP_SCK, GPIO.LOW)
+                time.sleep(0.001)
 
-                out_arr.append(out_byte)
+                # Serial input
+                if GPIO.input(Pins.TP_SO):
+                    out_byte |= 0b0000_0001
+                if i < 7:
+                    out_byte <<= 1
 
-            if not all(v == 0 for v in out_arr):
-                sample = out_arr
-            attempt += 1
+            receiving_bytes.append(out_byte)
+
         GPIO.output(Pins.TP_CS, GPIO.HIGH)
-
-        if sample is None:
-            print("Failed to get touch in {attempt} attempts".format(attempt=attempt))
-        else:
-            print("Got sample " + str(sample) + " in " + str(attempt) + " attempts")
-
-        return sample
+        return receiving_bytes
 
     # --------------------------------------------- SPI things ---------------------------------------------
 
