@@ -7,10 +7,10 @@ from handy_display.mirrors.Elegoo35.Constants import *
 # https://pinout.xyz/pinout/spi
 # https://pypi.org/project/spidev/
 try:
-    # from spidev import SpiDev
-    import Adafruit_PureIO.spi
+    from spidev import SpiDev
+    # import Adafruit_PureIO.spi
 
-    print("Elegoo35 - Successfully imported spidev: " + str(Adafruit_PureIO.spi))
+    print("Elegoo35 - Successfully imported spidev: " + str(SpiDev))
 except ImportError:
     print("Elegoo35 - Cannot use physical mirrors because spidev is not present!")
     exit(-10)
@@ -46,33 +46,24 @@ class Elegoo35Mirror(IMirror):
         GPIO.setup(Pins.RST, GPIO.OUT)
         GPIO.add_event_detect(Pins.TP_IRQ, GPIO.RISING, bouncetime=500)
 
-        GPIO.setup(Pins.LCD_TP_SCK, GPIO.OUT)
-        GPIO.setup(Pins.LCD_TP_SI, GPIO.OUT)
-        GPIO.setup(Pins.TP_SO, GPIO.IN)
-        GPIO.setup(Pins.LCD_CS, GPIO.OUT)
-        GPIO.setup(Pins.TP_CS, GPIO.OUT)
-
-        GPIO.output(Pins.LCD_CS, GPIO.HIGH)
-        GPIO.output(Pins.TP_CS, GPIO.HIGH)
-
         print("Starting SpiDev")
-        self.touch_panel_spi = Adafruit_PureIO.spi.SPI(
-            device=(Devices.LCD_TP_BUS, Devices.TP_DEVICE),
-            max_speed_hz=CLK_HZ,
-            bits_per_word=8
-        )
+        self.lcd_spi = SpiDev()
+
+        self.tp_spi = SpiDev()
+        self.tp_spi.open(Devices.LCD_TP_BUS, Devices.TP_DEVICE)
+        self.tp_spi.max_speed_hz = 2_000_000  # 2MHz (max 2.5MHz)
 
         # Reset the screen to a functional state in case I screw something up
-        ctrl_byte = bytearray()
-        ctrl_byte.append(
-            get_control_byte(
-                Channels.X_POS,
-                Conversions.BIT_12,
-                ReferenceInput.DIFFERENTIAL,
-                PowerMode.POWER_DOWN_BETWEEN
-            )
-        )
-        self.touch_panel_spi.writebytes(ctrl_byte)
+        # ctrl_byte = bytearray()
+        # ctrl_byte.append(
+        #     get_control_byte(
+        #         Channels.X_POS,
+        #         Conversions.BIT_12,
+        #         ReferenceInput.DIFFERENTIAL,
+        #         PowerMode.POWER_DOWN_BETWEEN
+        #     )
+        # )
+        # self.touch_panel_spi.writebytes(ctrl_byte)
 
     # --------------------------------------------- IScreen stuff ---------------------------------------------
 
@@ -80,8 +71,10 @@ class Elegoo35Mirror(IMirror):
         return self.width, self.height
 
     def process_events(self):
-        if GPIO.event_detected(Pins.TP_IRQ):
-            self.process_tft_touch()
+        # if GPIO.event_detected(Pins.TP_IRQ):
+           #  self.process_tft_touch()
+        if self.touched():
+            print(self.get_touch_position())
 
     def ready_for_next_frame(self):
         return self.spi_thread is None or not self.spi_thread.is_alive()
@@ -95,70 +88,43 @@ class Elegoo35Mirror(IMirror):
         print("Shutting down Elegoo35...")
         GPIO.cleanup()
 
-    def process_tft_touch(self):
+    def touched(self, touch_sensitivity=245):
+        reply = self.tp_spi.xfer2([0b10111000, 0b00000000, 0b00000000])
+        z1 = reply[2] >> 7 | reply[1] << 1
+        reply = self.tp_spi.xfer2([0b11001000, 0b00000000, 0b00000000])
+        z2 = reply[2] >> 7 | reply[1] << 1
+        if z2 - z1 < touch_sensitivity:
+            return True
+        else:
+            return False
 
-        sending_bytes = bytearray()
-        sending_bytes.append(
-            get_control_byte(
-                Channels.X_POS,
-                Conversions.BIT_12,
-                ReferenceInput.DIFFERENTIAL,
-                PowerMode.POWER_DOWN_BETWEEN
-            )
-        )  # Control byte
-        sending_bytes.append(0)
-        sending_bytes.append(0)
-        sending_bytes.append(0)
+    def get_touch_position(self):
 
-        samples = []
-        start = time.time()
-        while time.time() - start < 0.25:
-            sample = self.get_tft_sample(sending_bytes)
-            if sample is not None and not all(i == 0 for i in sample):
-                samples.append(sample)
-        print("Samples:", samples)
+        yoffset = 1
+        xoffset = 1
+        yscale = 1
+        xscale = 1
 
-        samples_tx = []
-        start = time.time()
-        while time.time() - start < 0.25:
-            GPIO.output(Pins.TP_CS, GPIO.LOW)
-            sample = self.touch_panel_spi.transfer(sending_bytes, max_speed_hz=CLK_HZ)
-            GPIO.output(Pins.TP_CS, GPIO.HIGH)
-            if sample is not None and not all(i == 0 for i in sample):
-                samples_tx.append(sample)
-        print("SamplesTX:", samples_tx)
-
-    def get_tft_sample(self, send_buffer) -> []:
-        GPIO.output(Pins.TP_CS, GPIO.LOW)
-        receiving_bytes = bytearray(0)
-
-        for byte in send_buffer:
-            out_byte = 0x00
-            for i in range(8):
-
-                # Serial output
-                if byte & 0b1000_0000 == 0:
-                    GPIO.output(Pins.LCD_TP_SI, GPIO.LOW)
-                else:
-                    GPIO.output(Pins.LCD_TP_SI, GPIO.HIGH)
-                byte <<= 1
-
-                # Clock pulse (The timing helps a lot!)
-                GPIO.output(Pins.LCD_TP_SCK, GPIO.HIGH)
-                time.sleep(0.001)
-                GPIO.output(Pins.LCD_TP_SCK, GPIO.LOW)
-                time.sleep(0.001)
-
-                # Serial input
-                if GPIO.input(Pins.TP_SO):
-                    out_byte |= 0b0000_0001
-                if i < 7:
-                    out_byte <<= 1
-
-            receiving_bytes.append(out_byte)
-
-        GPIO.output(Pins.TP_CS, GPIO.HIGH)
-        return receiving_bytes
+        if self.touched():
+            reply = self.tp_spi.xfer2([0b11010000, 0b00000000, 0b00000000])
+            y = int((4095 - (reply[1] << 5 | reply[2] >> 3) - yoffset) // yscale)
+            if y < 0:
+                y = 0
+            if y > 239:
+                y = 239
+            print("ReplyY", reply)
+            reply = self.tp_spi.xfer2([0b10010000, 0b00000000, 0b00000000])
+            x = (((reply[1] << 5 | reply[2] >> 3) - xoffset) // xscale)
+            x = int(x)
+            if x < 0:
+                x = 0
+            if x > 319:
+                x = 319
+            print("ReplyX", reply)
+        else:
+            x = 0
+            y = 0
+        return [x, y]
 
     # --------------------------------------------- SPI things ---------------------------------------------
 

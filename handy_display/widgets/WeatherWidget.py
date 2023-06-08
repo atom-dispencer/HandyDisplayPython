@@ -13,7 +13,6 @@ TIMEOUT_NS = 5_000_000_000  # 5 second timeout  #TODO Change weather timeout to 
 THREAD_NAME = "weather_refresh_thread"
 
 
-
 class WeatherWidget(IWidget):
 
     def __init__(self, gui):
@@ -23,7 +22,7 @@ class WeatherWidget(IWidget):
         self.open_weather_data = None
         self.gui_dirty = True
 
-        self.roboto_font = pygame.sysfont.SysFont("resources/Roboto/Roboto-Black.ttf", 16)
+        # self.roboto_font = pygame.font.SysFont("resources/Roboto/Roboto-Black.ttf", 16)
 
     def on_show(self):
         pass
@@ -43,9 +42,10 @@ class WeatherWidget(IWidget):
                 self.gui_dirty = True
 
         if self.gui_dirty:
+            return
             screen_surface.fill((0, 0, 0))
             weather_text = self.open_weather_data["main"]["temp"] if self.open_weather_data is not None else "No data"
-            rendered_text = self.roboto_font.render("Kelvin: " + str(weather_text), True,  (255, 255, 255))
+            rendered_text = self.roboto_font.render("Kelvin: " + str(weather_text), True, (255, 255, 255))
             screen_surface.blit(rendered_text, (50, 50))
             self.gui_dirty = False
 
@@ -75,4 +75,3 @@ class WeatherWidget(IWidget):
         except json.JSONDecodeError as je:
             print("An error occurred decoding the response from the OpenWeather API")
             print(je)
-
