@@ -41,5 +41,4 @@ class IMirror:
     def screen_touched(self, x: int, y: int):
         for name, callback in self.__touch_callbacks.items():
             if callback is not None:
-                print("Calling back to " + name + ":" + callback.__module__ + "." + callback.__name__)
                 callback(x, y)

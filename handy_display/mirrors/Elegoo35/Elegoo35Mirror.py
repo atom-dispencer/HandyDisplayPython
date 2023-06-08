@@ -53,17 +53,12 @@ class Elegoo35Mirror(IMirror):
         self.tp_spi.open(Devices.LCD_TP_BUS, Devices.TP_DEVICE)
         self.tp_spi.max_speed_hz = 2_000_000  # 2MHz (max 2.5MHz)
 
-        # Reset the screen to a functional state in case I screw something up
-        # ctrl_byte = bytearray()
-        # ctrl_byte.append(
-        #     get_control_byte(
-        #         Channels.X_POS,
-        #         Conversions.BIT_12,
-        #         ReferenceInput.DIFFERENTIAL,
-        #         PowerMode.POWER_DOWN_BETWEEN
-        #     )
-        # )
-        # self.touch_panel_spi.writebytes(ctrl_byte)
+        self.last_touch_nanos = 0
+        self.touch_timeout_nanos = 0.5e9
+        self.x_offset = 1
+        self.y_offset = 1
+        self.x_scale = 1
+        self.y_scale = 1
 
     # --------------------------------------------- IScreen stuff ---------------------------------------------
 
@@ -71,10 +66,9 @@ class Elegoo35Mirror(IMirror):
         return self.width, self.height
 
     def process_events(self):
-        # if GPIO.event_detected(Pins.TP_IRQ):
-           #  self.process_tft_touch()
         if self.touched():
-            print(self.get_touch_position())
+            (x, y) = self.get_touch_position()
+            self.screen_touched(x, y)
 
     def ready_for_next_frame(self):
         return self.spi_thread is None or not self.spi_thread.is_alive()
@@ -89,6 +83,7 @@ class Elegoo35Mirror(IMirror):
         GPIO.cleanup()
 
     def touched(self, touch_sensitivity=245):
+
         reply = self.tp_spi.xfer2([0b10111000, 0b00000000, 0b00000000])
         z1 = reply[2] >> 7 | reply[1] << 1
         reply = self.tp_spi.xfer2([0b11001000, 0b00000000, 0b00000000])
@@ -100,21 +95,17 @@ class Elegoo35Mirror(IMirror):
 
     def get_touch_position(self):
 
-        yoffset = 1
-        xoffset = 1
-        yscale = 1
-        xscale = 1
-
         if self.touched():
             reply = self.tp_spi.xfer2([0b11010000, 0b00000000, 0b00000000])
-            y = int((4095 - (reply[1] << 5 | reply[2] >> 3) - yoffset) // yscale)
+            y = int((4095 - (reply[1] << 5 | reply[2] >> 3) - self.y_offset) // self.y_scale)
             if y < 0:
                 y = 0
             if y > 239:
                 y = 239
             print("ReplyY", reply)
+
             reply = self.tp_spi.xfer2([0b10010000, 0b00000000, 0b00000000])
-            x = (((reply[1] << 5 | reply[2] >> 3) - xoffset) // xscale)
+            x = (((reply[1] << 5 | reply[2] >> 3) - self.x_offset) // self.x_scale)
             x = int(x)
             if x < 0:
                 x = 0
@@ -124,7 +115,8 @@ class Elegoo35Mirror(IMirror):
         else:
             x = 0
             y = 0
-        return [x, y]
+        print(x, y)
+        return x, y
 
     # --------------------------------------------- SPI things ---------------------------------------------
 

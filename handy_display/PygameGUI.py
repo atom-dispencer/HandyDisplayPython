@@ -1,4 +1,6 @@
 import os
+import time
+
 import pygame
 from pygame import Surface
 
@@ -28,6 +30,9 @@ class PygameGUI:
 
         self.mirror.add_touch_callback("PygameGUI_default", lambda x, y: self.click_event(x, y))
 
+        self.last_touch_epoch_secs = 0
+        self.touch_timeout_secs = 0.5
+
         # Initialise pygame
         try:
             pygame.init()
@@ -44,7 +49,15 @@ class PygameGUI:
             quit(-100)
 
     def click_event(self, x: int, y: int):
+        # Throttle touch frequency
+        if time.time() - self.last_touch_epoch_secs < self.touch_timeout_secs:
+            return
+        self.last_touch_epoch_secs = time.time()
+
         # Check overlay collisions first
+        #
+
+        # Pass touch down to widget
         self.get_current_widget().click_event(x, y)
 
     def request_widget(self, name: str):
