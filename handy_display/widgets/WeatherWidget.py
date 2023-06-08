@@ -2,6 +2,7 @@ import json
 import time
 import threading
 
+import pygame
 import requests
 from pygame import Surface
 
@@ -12,6 +13,7 @@ TIMEOUT_NS = 5_000_000_000  # 5 second timeout  #TODO Change weather timeout to 
 THREAD_NAME = "weather_refresh_thread"
 
 
+
 class WeatherWidget(IWidget):
 
     def __init__(self, gui):
@@ -19,6 +21,9 @@ class WeatherWidget(IWidget):
         self.last_refresh_ns = 0
         self.refresh_thread = None
         self.open_weather_data = None
+        self.gui_dirty = True
+
+        self.roboto_font = pygame.sysfont.SysFont("resources/Roboto/Roboto-Black.ttf", 16)
 
     def on_show(self):
         pass
@@ -35,10 +40,15 @@ class WeatherWidget(IWidget):
                 self.refresh_thread = threading.Thread(name=THREAD_NAME, target=lambda: self.update_info())
                 self.refresh_thread.start()
                 self.last_refresh_ns = time.time_ns()
+                self.gui_dirty = True
 
-                print(self.open_weather_data)
+        if self.gui_dirty:
+            screen_surface.fill((0, 0, 0))
+            weather_text = self.open_weather_data["main"]["temp"] if self.open_weather_data is not None else "No data"
+            rendered_text = self.roboto_font.render("Kelvin: " + str(weather_text), True,  (255, 255, 255))
+            screen_surface.blit(rendered_text, (50, 50))
+            self.gui_dirty = False
 
-        screen_surface.fill((0, 0, 0))
         pass
 
     def on_hide(self):
