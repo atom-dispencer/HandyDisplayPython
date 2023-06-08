@@ -1,6 +1,7 @@
 import platform
 import sys
 
+import handy_display.ImageHelper as ImageLoader
 from handy_display.Options import Options, MirrorType
 from handy_display.PygameGUI import PygameGUI
 from handy_display.widgets.TestWidget import TestWidget
