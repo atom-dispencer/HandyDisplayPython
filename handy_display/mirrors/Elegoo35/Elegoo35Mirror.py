@@ -8,6 +8,7 @@ from handy_display.mirrors.Elegoo35.Constants import *
 # https://pypi.org/project/spidev/
 try:
     from spidev import SpiDev
+
     # import Adafruit_PureIO.spi
 
     print("Elegoo35 - Successfully imported spidev: " + str(SpiDev))
@@ -29,6 +30,14 @@ except RuntimeError:
 
 THREAD_NAME = "tft_lcd_spi_thread"
 CLK_HZ = int(125e3)  # 125kHz
+
+MAX_XPT_RTN: int = 0xFFF  # 4095
+HEIGHT_PX: int = 320
+WIDTH_PX: int = 480
+X_SCALE: float = WIDTH_PX / MAX_XPT_RTN
+Y_SCALE: float = WIDTH_PX / MAX_XPT_RTN
+X_OFFSET: int = 0
+Y_OFFSET: int = 0
 
 
 class Elegoo35Mirror(IMirror):
@@ -55,10 +64,6 @@ class Elegoo35Mirror(IMirror):
 
         self.last_touch_nanos = 0
         self.touch_timeout_nanos = 0.5e9
-        self.x_offset = 1
-        self.y_offset = 1
-        self.x_scale = 1
-        self.y_scale = 1
 
     # --------------------------------------------- IScreen stuff ---------------------------------------------
 
@@ -93,24 +98,28 @@ class Elegoo35Mirror(IMirror):
         else:
             return False
 
+    #
+    # Reply is of format 00000000 0....... .....000 and has 12 relevant bits
+    #
     def get_touch_position(self):
 
         if self.touched():
+            # For each, concatenate the two significant reply bytes, subtract an offset and scale the result, and clamp
+
             reply = self.tp_spi.xfer2([0b11010000, 0b00000000, 0b00000000])
-            y = int((4095 - (reply[1] << 5 | reply[2] >> 3) - self.y_offset) // self.y_scale)
+            y = int(((reply[1] << 5 | reply[2] >> 3) * Y_SCALE) - Y_OFFSET)
             if y < 0:
                 y = 0
-            if y > 239:
-                y = 239
+            if y > HEIGHT_PX:
+                y = HEIGHT_PX
             print("ReplyY", reply)
 
             reply = self.tp_spi.xfer2([0b10010000, 0b00000000, 0b00000000])
-            x = (((reply[1] << 5 | reply[2] >> 3) - self.x_offset) // self.x_scale)
-            x = int(x)
+            x = int(((reply[1] << 5 | reply[2] >> 3) * X_SCALE) - X_OFFSET)
             if x < 0:
                 x = 0
-            if x > 319:
-                x = 319
+            if x > WIDTH_PX:
+                x = WIDTH_PX
             print("ReplyX", reply)
         else:
             x = 0

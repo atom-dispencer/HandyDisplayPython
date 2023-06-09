@@ -1,77 +1,33 @@
-Swapping widget 'None' for 'test'
-Adding test widget
-TOUCH
-CTRL:  bytearray(b'\xd0\x00\x00')
-REPLY: [128, 0, 0]
-10000000 00000000 00000000
+ReplyY [0, 26, 192]    00000000 00011010 11000000     1101011000
+ReplyX [0, 17, 24]
+319 239
+ReplyY [0, 26, 120]
+ReplyX [0, 17, 16]
+319 239
+ReplyY [0, 26, 112]
+ReplyX [0, 17, 0]
+319 239
+ReplyY [0, 108, 88]
+ReplyX [0, 15, 168]
+319 239
+ReplyY [0, 108, 232]			11101000
+ReplyX [0, 15, 112]
+319 239
+ReplyY [0, 107, 32]				00100000
+ReplyX [0, 107, 232]			11101000
+319 239
+ReplyY [0, 108, 56]				00111000
+ReplyX [0, 108, 96]
+319 239
+ReplyY [0, 36, 48]				00110000
+ReplyX [0, 106, 208]			11010000
+319 239
+ReplyY [0, 35, 72]				01001000
+ReplyX [0, 107, 40]
+319 239
+ReplyY [0, 35, 104]    0 00100011 01101000
+ReplyX [0, 107, 32]    0 01101011 00100000
+319 239
 
-TOUCH
-CTRL:  bytearray(b'\xd0\x00\x00')
-REPLY: [0, 15, 40]
-00000000 00001111 00101000
 
-TOUCH
-CTRL:  bytearray(b'\xd0\x00\x00')
-REPLY: [0, 52, 80]
-00000000 00110100 01010000
-
-TOUCH
-CTRL:  bytearray(b'\xd0\x00\x00')
-REPLY: [0, 0, 0]
-00000000 00000000 00000000
-
-TOUCH
-CTRL:  bytearray(b'\xd0\x00\x00')
-REPLY: [0, 40, 40]
-00000000 00101000 00101000
-
-TOUCH
-CTRL:  bytearray(b'\xd0\x00\x00')
-REPLY: [0, 0, 0]
-00000000 00000000 00000000
-
-TOUCH
-CTRL:  bytearray(b'\xd0\x00\x00')
-REPLY: [0, 0, 0]
-00000000 00000000 00000000
-
-TOUCH
-CTRL:  bytearray(b'\xd0\x00\x00')
-REPLY: [0, 0, 0]
-00000000 00000000 00000000
-
-TOUCH
-CTRL:  bytearray(b'\xd0\x00\x00')
-REPLY: [0, 0, 0]
-00000000 00000000 00000000
-
-TOUCH
-CTRL:  bytearray(b'\xd0\x00\x00')
-REPLY: [0, 80, 40]
-00000000 01010000 00101000
-
-TOUCH
-CTRL:  bytearray(b'\xd0\x00\x00')
-REPLY: [0, 0, 0]
-00000000 00000000 00000000
-
-TOUCH
-CTRL:  bytearray(b'\xd0\x00\x00')
-REPLY: [0, 86, 48]
-00000000 01010110 00110000
-
-TOUCH
-CTRL:  bytearray(b'\xd0\x00\x00')
-REPLY: [0, 0, 0]
-TOUCH
-CTRL:  bytearray(b'\xd0\x00\x00')
-REPLY: [0, 0, 0]
-TOUCH
-CTRL:  bytearray(b'\xd0\x00\x00')
-REPLY: [0, 34, 160]
-TOUCH
-CTRL:  bytearray(b'\xd0\x00\x00')
-REPLY: [0, 42, 64]
-^CInterrupted by keyboard. Shutting down...
-Shutting down Elegoo35...
-Exited
+0111 1111 2222 2000
