@@ -1,4 +1,4 @@
-https://github.com/ustropo/Python_ILI9486/blob/master/Python_ILI9486/ILI9486.py
+# https://github.com/ustropo/Python_ILI9486/blob/master/Python_ILI9486/ILI9486.py
 
 # Copyright (c) 2016 myway work
 # Author: Liqun Hu
@@ -20,15 +20,32 @@ https://github.com/ustropo/Python_ILI9486/blob/master/Python_ILI9486/ILI9486.py
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+#
+
 import numbers
 import time
-import numpy as np
 
 from PIL import Image, ImageDraw
 
-import Adafruit_GPIO as GPIO
-import Adafruit_GPIO.SPI as SPI
+from handy_display import ImageHelper
+from handy_display.mirrors.Elegoo35.Constants import Devices
 
+###
+#    My additions
+###
+try:
+    from RPi import GPIO
+    from spidev import SpiDev
+except ImportError as e:
+    print("Import error for ILI9486:", e)
+    exit(-15)
+
+lcd_spi = SpiDev()
+lcd_spi.open(Devices.LCD_TP_BUS, Devices.LCD_DEVICE)
+lcd_spi.max_speed_hz = 64_000_000  # 64MHz (max 2.5MHz)
+###
+###
+###
 
 # Constants for interacting with display registers.
 ILI9486_TFTWIDTH    = 320
@@ -99,62 +116,33 @@ ILI9486_YELLOW      = 0xFFE0
 ILI9486_WHITE       = 0xFFFF
 
 
-def color565(r, g, b):
-    """Convert red, green, blue components to a 16-bit 565 RGB value. Components
-    should be values 0 to 255.
-    """
-    return ((r & 0xF0) << 8) | ((g & 0xFC) << 3) | (b >> 3)
-
-def image_to_data(image):
-    """Generator function to convert a PIL image to 16-bit 565 RGB bytes."""
-    #NumPy is much faster at doing this. NumPy code provided by:
-    #Keith (https://www.blogger.com/profile/02555547344016007163)
-    pb = np.array(image.convert('RGB')).astype('uint16')
-#    color = ((pb[:,:,0] & 0xF8) << 8) | ((pb[:,:,1] & 0xFC) << 3) | (pb[:,:,2] >> 3)
-#    return np.dstack(((color >> 8) & 0xFF, color & 0xFF)).flatten().tolist()
-    return np.dstack((pb[:,:,0] & 0xFC, pb[:,:,1] & 0xFC, pb[:,:,2] & 0xFC)).flatten().tolist()
-#    pixels = image.convert('RGB').load()  
-#    width, height = image.size  
-#    for y in range(height):  
-#        for x in range(width):  
-#            r,g,b = pixels[(x,y)]  
-##            color = color565(r, g, b)  
-#            #yield (color >> 8) & 0xFF  
-#            #yield color & 0xFF  
-#            yield r 
-#            yield g  
-#            yield b 
-
-
 class ILI9486(object):
     """Representation of an ILI9486 TFT LCD."""
 
-    def __init__(self, dc, spi, rst=None, gpio=None, width=ILI9486_TFTWIDTH,
-        height=ILI9486_TFTHEIGHT):
+    def __init__(self, data_cmd, spi, rst=None, width=ILI9486_TFTWIDTH, height=ILI9486_TFTHEIGHT):
         """Create an instance of the display using SPI communication.  Must
         provide the GPIO pin number for the D/C pin and the SPI driver.  Can
         optionally provide the GPIO pin number for the reset pin as the rst
         parameter.
         """
-        self._dc = dc
+        self._data_cmd = data_cmd
         self._rst = rst
         self._spi = spi
-        self._gpio = gpio
         self.width = width
         self.height = height
-        if self._gpio is None:
-            self._gpio = GPIO.get_platform_gpio()
-        # Set DC as output.
-        self._gpio.setup(dc, GPIO.OUT)
-        # Setup reset as output (if provided).
+
+        GPIO.setup(data_cmd, GPIO.OUT)
         if rst is not None:
-            self._gpio.setup(rst, GPIO.OUT)
+            GPIO.setup(rst, GPIO.OUT)
+
         # Set SPI to mode 0, MSB first.
-        spi.set_mode(2)
-        spi.set_bit_order(SPI.MSBFIRST)
-        spi.set_clock_hz(64000000)
+        self._spi.open(Devices.LCD_TP_BUS, Devices.LCD_DEVICE)
+        self._spi.mode = 2  # This was actually 2 before?
+        self._spi.lsbfirst = False
+        self._spi.max_speed_hz = 64000000  # Is this too high?
+
         # Create an image buffer.
-        self.buffer = Image.new('RGB', (width, height))
+        self.pil_internal = Image.new('RGB', (width, height))
 
     def send(self, data, is_data=True, chunk_size=4096):
         """Write a byte or array of bytes to the display. Is_data parameter
@@ -163,14 +151,19 @@ class ILI9486(object):
         single SPI transaction, with a default of 4096.
         """
         # Set DC low for command, high for data.
-        self._gpio.output(self._dc, is_data)
+        GPIO.output(self._data_cmd, is_data)
         # Convert scalar argument to list so either can be passed as parameter.
         if isinstance(data, numbers.Number):
             data = [data & 0xFF]
         # Write data a chunk at a time.
         for start in range(0, len(data), chunk_size):
             end = min(start+chunk_size, len(data))
-            self._spi.write(data[start:end])
+
+            f = open("out/data.txt", "w")
+            f.write(str(data))
+            f.close()
+
+            reply = self._spi.xfer2(data[start:end])
 
     def command(self, data):
         """Write a byte or array of bytes to the display as command data."""
@@ -183,31 +176,90 @@ class ILI9486(object):
     def reset(self):
         """Reset the display, if reset pin is connected."""
         if self._rst is not None:
-            self._gpio.set_high(self._rst)
+            GPIO.output(self._rst, GPIO.HIGH)
             time.sleep(0.005)
-            self._gpio.set_low(self._rst)
+            GPIO.output(self._rst, GPIO.LOW)
             time.sleep(0.02)
-            self._gpio.set_high(self._rst)
+            GPIO.output(self._rst, GPIO.HIGH)
             time.sleep(0.150)
 
-    def _init(self):
+    def begin(self):
+        """Initialize the display.  Should be called once before other calls that
+        interact with the display are called.
+        """
+        self.reset()
+        self.send_init_sequence()
+    
+    def set_window(self, x0=0, y0=0, x1=None, y1=None):
+        """Set the pixel address window for proceeding drawing commands. x0 and
+        x1 should define the minimum and maximum x pixel bounds.  y0 and y1 
+        should define the minimum and maximum y pixel bound.  If no parameters 
+        are specified the default will be to update the entire display from 0,0
+        to 239,319.
+        """
+        if x1 is None:
+            x1 = self.width-1
+        if y1 is None:
+            y1 = self.height-1
+        self.command(0x2A)        # Column addr set
+        self.data(x0 >> 8)
+        self.data(x0 & 0xFF)                    # XSTART 
+        self.data(x1 >> 8)
+        self.data(x1 & 0xFF)                    # XEND
+        self.command(0x2B)        # Row addr set
+        self.data(y0 >> 8)
+        self.data(y0 & 0xFF)                    # YSTART
+        self.data(y1 >> 8)
+        self.data(y1 & 0xFF)                    # YEND
+        self.command(0x2C)        # write to RAM
+
+    def display_pil(self, pil_img):
+        """Write the display buffer or provided image to the hardware.  If no
+        image parameter is provided the display buffer will be written to the
+        hardware.  If an image is provided, it should be RGB format and the
+        same dimensions as the display hardware.
+        """
+        # By default, write the internal buffer to the display.
+        if pil_img is None:
+            pil_img = self.pil_internal
+        # Set address bounds to entire display.
+        self.set_window()
+
+        print("Converting...")
+        rgb888 = ImageHelper.pil_to_rgb888(pil_img)
+        rgb565 = ImageHelper.rgb888_to_rgb565(rgb888)
+        data = rgb565.flatten().tolist()
+
+        print("SPI'ing...")
+        self.data(data)
+
+    def fill_pil_internal(self, color=(0, 0, 0)):
+        """Clear the image buffer to the specified RGB color (default black)."""
+        width, height = self.pil_internal.size
+        self.pil_internal.putdata([color] * (width * height))
+
+    def get_internal_drawer(self):
+        """Return a PIL ImageDraw instance for 2D drawing on the image buffer."""
+        return ImageDraw.Draw(self.pil_internal)
+
+    def send_init_sequence(self):
         # Initialize the display.  Broken out as a separate function so it can
         # be overridden by other displays in the future.
         self.command(0xB0)
         self.data(0x00)
         self.command(0x11)
         time.sleep(0.020)
-    
+
         self.command(0x3A)
         self.data(0x66)
 
         self.command(0x0C)
         self.data(0x66)
 
-        #self.command(0xB6)
-        #self.data(0x00)
-        #self.data(0x42)
-        #self.data(0x3B)
+        # self.command(0xB6)
+        # self.data(0x00)
+        # self.data(0x42)
+        # self.data(0x3B)
 
         self.command(0xC2)
         self.data(0x44)
@@ -217,7 +269,7 @@ class ILI9486(object):
         self.data(0x00)
         self.data(0x00)
         self.data(0x00)
-        
+
         self.command(0xE0)
         self.data(0x0F)
         self.data(0x1F)
@@ -251,7 +303,7 @@ class ILI9486(object):
         self.data(0x24)
         self.data(0x20)
         self.data(0x00)
-    
+
         self.command(0xE2)
         self.data(0x0F)
         self.data(0x32)
@@ -268,67 +320,9 @@ class ILI9486(object):
         self.data(0x24)
         self.data(0x20)
         self.data(0x00)
-            
+
         self.command(0x36)
-        self.data(0x88) #change the direct
+        self.data(0x88)  # change the direct
 
         self.command(0x11)
         self.command(0x29)
-
-    def begin(self):
-        """Initialize the display.  Should be called once before other calls that
-        interact with the display are called.
-        """
-        self.reset()
-        self._init()    
-    
-    def set_window(self, x0=0, y0=0, x1=None, y1=None):
-        """Set the pixel address window for proceeding drawing commands. x0 and
-        x1 should define the minimum and maximum x pixel bounds.  y0 and y1 
-        should define the minimum and maximum y pixel bound.  If no parameters 
-        are specified the default will be to update the entire display from 0,0
-        to 239,319.
-        """
-        if x1 is None:
-            x1 = self.width-1
-        if y1 is None:
-            y1 = self.height-1
-        self.command(0x2A)        # Column addr set
-        self.data(x0 >> 8)
-        self.data(x0 & 0xFF)                    # XSTART 
-        self.data(x1 >> 8)
-        self.data(x1 & 0xFF)                    # XEND
-        self.command(0x2B)        # Row addr set
-        self.data(y0 >> 8)
-        self.data(y0 & 0xFF)                    # YSTART
-        self.data(y1 >> 8)
-        self.data(y1 & 0xFF)                    # YEND
-        self.command(0x2C)        # write to RAM
-
-    def display(self, image=None):
-        """Write the display buffer or provided image to the hardware.  If no
-        image parameter is provided the display buffer will be written to the
-        hardware.  If an image is provided, it should be RGB format and the
-        same dimensions as the display hardware.
-        """
-        # By default write the internal buffer to the display.
-        if image is None:
-            image = self.buffer
-        # Set address bounds to entire display.
-        self.set_window()
-        # Convert image to array of 16bit 565 RGB data bytes.
-        # Unfortunate that this copy has to occur, but the SPI byte writing
-        # function needs to take an array of bytes and PIL doesn't natively
-        # store images in 16-bit 565 RGB format.
-        pixelbytes = list(image_to_data(image))
-        # Write data to hardware.
-        self.data(pixelbytes)
-
-    def clear(self, color=(0,0,0)):
-        """Clear the image buffer to the specified RGB color (default black)."""
-        width, height = self.buffer.size
-        self.buffer.putdata([color]*(width*height))
-
-    def draw(self):
-        """Return a PIL ImageDraw instance for 2D drawing on the image buffer."""
-        return ImageDraw.Draw(self.buffer)

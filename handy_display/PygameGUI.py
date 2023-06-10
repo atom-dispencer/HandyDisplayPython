@@ -1,6 +1,7 @@
 import os
 import time
 
+import PIL.Image
 import pygame
 from pygame import Surface
 
@@ -102,8 +103,17 @@ class PygameGUI:
 
         if self.mirror.ready_for_next_frame():
             # Copy the pixels to a new buffer to avoid race conditions!
-            array3d = pygame.surfarray.array3d(self.screen_surface)
-            self.mirror.next_frame(array3d)
+            # array3d = pygame.surfarray.array3d(self.screen_surface)
+
+            img_bytes = pygame.image.tobytes(self.screen_surface, "RGB")
+            pil_img = PIL.Image.frombytes("RGB", (self.mirror.width, self.mirror.height), img_bytes)
+
+            # Saving is successful!!
+            # pygame.image.save(self.screen_surface, "out/surface.png")
+            # pil_img.save("out/pil.png")
+
+            self.mirror.next_frame(pil_img)
+
         self.mirror.process_events()
 
         # Flip the display buffers (or something like that)

@@ -4,19 +4,19 @@ from enum import Enum
 
 
 class Channels:
-    X_POS   = 0b0_101_0000
-    Y_POS   = 0b0_001_0000
-    Z1_POS  = 0b0_011_0000
-    Z2_POS  = 0b0_100_0000
-    TEMP_0  = 0b0_000_0000
-    TEMP_1  = 0b0_111_0000
-    BAT_V   = 0b0_001_0000
-    AUX     = 0b0_110_0000
+    X_POS = 0b0_101_0000
+    Y_POS = 0b0_001_0000
+    Z1_POS = 0b0_011_0000
+    Z2_POS = 0b0_100_0000
+    TEMP_0 = 0b0_000_0000
+    TEMP_1 = 0b0_111_0000
+    BAT_V = 0b0_001_0000
+    AUX = 0b0_110_0000
 
 
 class Conversions:
-    BIT_12  = 0b0000_0_000
-    BIT_8   = 0b0000_1_000
+    BIT_12 = 0b0000_0_000
+    BIT_8 = 0b0000_1_000
 
 
 class ReferenceInput:
@@ -44,14 +44,14 @@ class Devices:
 
 class Pins:
     # Using the XPT2046 touch panel (TP) and the ILI9486 LCD chip (LCD)
-    TP_IRQ      = 17  # SPI1 CE1  # TP touch interrupt
-    LCD_RS      = 24  # -         # LCD instruction control (Instruction/Data register select)
-    LCD_TP_SI   = 10  # SPI0 MOSI # SPI data into TP (MOSI) and LCD
-    RST         = 25  # -         # Reset
-    TP_SO       = 9   # SPI0 MISO # SPI data out (MISO) of the TP
-    LCD_CS      = 8   # SPI0 CE0  # Chip select (enable) for the LCD
-    LCD_TP_SCK  = 11  # SPI0 SCLK # Clock for SPI interface
-    TP_CS       = 7   # SPI0 CE1  # Chip select (enable) for the TP
+    TP_IRQ = 17  # SPI1 CE1  # TP touch interrupt
+    LCD_RS = 24  # -         # LCD instruction control (Instruction/Data register select)
+    LCD_TP_SI = 10  # SPI0 MOSI # SPI data into TP (MOSI) and LCD
+    RST = 25  # -         # Reset
+    TP_SO = 9  # SPI0 MISO # SPI data out (MISO) of the TP
+    LCD_CS = 8  # SPI0 CE0  # Chip select (enable) for the LCD
+    LCD_TP_SCK = 11  # SPI0 SCLK # Clock for SPI interface
+    TP_CS = 7  # SPI0 CE1  # Chip select (enable) for the TP
 
 
 class Commands:

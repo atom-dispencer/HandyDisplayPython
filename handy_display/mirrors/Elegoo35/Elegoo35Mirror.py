@@ -1,6 +1,10 @@
+import numbers
 import threading
 import time
 
+from PIL import Image
+
+from handy_display.mirrors.Elegoo35.ILI9486 import ILI9486
 from handy_display.mirrors.IMirror import IMirror
 from handy_display.mirrors.Elegoo35.Constants import *
 
@@ -53,17 +57,21 @@ class Elegoo35Mirror(IMirror):
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(Pins.TP_IRQ, GPIO.IN)
         GPIO.setup(Pins.RST, GPIO.OUT)
-        GPIO.add_event_detect(Pins.TP_IRQ, GPIO.RISING, bouncetime=500)
+        GPIO.setup(Pins.LCD_RS, GPIO.OUT)
 
         print("Starting SpiDev")
-        self.lcd_spi = SpiDev()
-
         self.tp_spi = SpiDev()
         self.tp_spi.open(Devices.LCD_TP_BUS, Devices.TP_DEVICE)
         self.tp_spi.max_speed_hz = 2_000_000  # 2MHz (max 2.5MHz)
 
         self.last_touch_nanos = 0
         self.touch_timeout_nanos = 0.5e9
+
+        lcd_spi = SpiDev()
+        self.tp_spi.open(Devices.LCD_TP_BUS, Devices.TP_DEVICE)
+        self.tp_spi.max_speed_hz = 2_000_000  # 2MHz (max 2.5MHz)
+        self.lcd = ILI9486(data_cmd=Pins.LCD_RS, spi=lcd_spi, rst=Pins.RST)
+        self.lcd.send_init_sequence()
 
     # --------------------------------------------- IScreen stuff ---------------------------------------------
 
@@ -81,10 +89,11 @@ class Elegoo35Mirror(IMirror):
     def next_frame(self, pixel_array_3d):
         if self.ready_for_next_frame():
             self.spi_thread = threading.Thread(name=THREAD_NAME, target=lambda: self.push_pixels_spi(pixel_array_3d))
-            # self.spi_thread.start()
+            self.spi_thread.start()
 
     def shutdown(self):
         print("Shutting down Elegoo35...")
+        # TODO Correct XPT/LCD/E35 mirror shutdown
         GPIO.cleanup()
 
     def touched(self, touch_sensitivity=245):
@@ -136,6 +145,16 @@ class Elegoo35Mirror(IMirror):
             GPIO.output(Pins.RST, GPIO.LOW)
             time.sleep(0.05)
 
-    def push_pixels_spi(self, pixel_array_3d):
-        #  print("Pushing pixels!")
+    def push_pixels_spi(self, pil_img):
+        print("Pushing pixels: ", str(pil_img))
+        try:
+
+            GPIO.output(Pins.LCD_RS, GPIO.LOW)
+            self.lcd.display_pil(pil_img)
+            GPIO.output(Pins.LCD_RS, GPIO.HIGH)
+            print("Done!!")
+
+        except RuntimeError as re:
+            print("Error while pushing pixels!")
+            print(re)
         pass
