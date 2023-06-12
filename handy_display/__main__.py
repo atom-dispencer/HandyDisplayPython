@@ -1,7 +1,6 @@
 import platform
 import sys
 
-import handy_display.ImageHelper as ImageLoader
 from handy_display.Options import Options, MirrorType
 from handy_display.PygameGUI import PygameGUI
 from handy_display.widgets.TestWidget import TestWidget
@@ -13,10 +12,12 @@ def get_relevant_mirror(mirror_type):
     if mirror_type == MirrorType.NO_MIRROR:
         print("Using PygameOnlyMirror...")
         import handy_display.mirrors.PygameOnlyMirror
+
         return handy_display.mirrors.PygameOnlyMirror.PygameOnlyMirror()
     if mirror_type == MirrorType.TFT_LCD_XPT2046_ILI9486:
         print("Using TFT_LCD_XPT2046_ILI9486_Mirror...")
         import handy_display.mirrors.Elegoo35.Elegoo35Mirror
+
         return handy_display.mirrors.Elegoo35.Elegoo35Mirror.Elegoo35Mirror(480, 320)
 
 

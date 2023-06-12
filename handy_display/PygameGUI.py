@@ -10,26 +10,28 @@ from handy_display.widgets.IWidget import IWidget
 
 
 class PygameGUI:
-
     # noinspection PyTypeChecker
     def __init__(self, mirror_in, options: Options):
         print("Creating PygameGUI with mirror " + str(mirror_in))
 
         # Configure drivers
         if options.headless:
-            os.environ['SDL_VIDEODRIVER'] = 'dummy'
-        os.environ['SDL_AUDIODRIVER'] = 'dummy'
+            os.environ["SDL_VIDEODRIVER"] = "dummy"
+        os.environ["SDL_AUDIODRIVER"] = "dummy"
 
         # Setup instance variables
         self.mirror = mirror_in
         self.running: bool = False
-        self.screen_surface: Surface = None  # The pygame surface backing the GUI
+        # The pygame surface backing the GUI
+        self.screen_surface: Surface = None
         self.widgets = {}
         self.current_widget_name = None
         self.next_widget_name = None
         self.running = True
 
-        self.mirror.add_touch_callback("PygameGUI_default", lambda x, y: self.click_event(x, y))
+        self.mirror.add_touch_callback(
+            "PygameGUI_default", lambda x, y: self.click_event(x, y)
+        )
 
         self.last_touch_epoch_secs = 0
         self.touch_timeout_secs = 0.5
@@ -37,7 +39,9 @@ class PygameGUI:
         # Initialise pygame
         try:
             pygame.init()
-            self.screen_surface = pygame.display.set_mode((self.mirror.width, self.mirror.height))
+            self.screen_surface = pygame.display.set_mode(
+                (self.mirror.width, self.mirror.height)
+            )
             pygame.display.set_caption("Handy Display (PygameGUI)")
         except Exception as ex:
             print()
@@ -45,8 +49,10 @@ class PygameGUI:
             print()
             print(ex)
             print()
-            print("If you are running in a headless environment, "
-                  "make sure you specified the 'headless' option to __main__.py")
+            print(
+                "If you are running in a headless environment, "
+                "make sure you specified the 'headless' option to __main__.py"
+            )
             quit(-100)
 
     def click_event(self, x: int, y: int):
@@ -65,7 +71,11 @@ class PygameGUI:
         self.next_widget_name = name
 
     def get_current_widget(self) -> IWidget:
-        return self.widgets[self.current_widget_name] if self.current_widget_name is not None else None
+        return (
+            self.widgets[self.current_widget_name]
+            if self.current_widget_name is not None
+            else None
+        )
 
     def refresh(self):
         if not self.running:
@@ -74,8 +84,11 @@ class PygameGUI:
         # Switch in the next queued widget
         if self.next_widget_name is not None:
             if self.next_widget_name in self.widgets.keys():
-                print("Swapping widget '{old}' for '{new}'".format(old=self.current_widget_name,
-                                                                   new=self.next_widget_name))
+                print(
+                    "Swapping widget '{old}' for '{new}'".format(
+                        old=self.current_widget_name, new=self.next_widget_name
+                    )
+                )
 
                 old = self.get_current_widget()
                 if old is not None:
@@ -106,7 +119,9 @@ class PygameGUI:
             # array3d = pygame.surfarray.array3d(self.screen_surface)
 
             img_bytes = pygame.image.tobytes(self.screen_surface, "RGB")
-            pil_img = PIL.Image.frombytes("RGB", (self.mirror.width, self.mirror.height), img_bytes)
+            pil_img = PIL.Image.frombytes(
+                "RGB", (self.mirror.width, self.mirror.height), img_bytes
+            )
 
             # Saving is successful!!
             # pygame.image.save(self.screen_surface, "out/surface.png")
