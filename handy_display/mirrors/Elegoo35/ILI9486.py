@@ -25,7 +25,8 @@
 import numbers
 import time
 
-from PIL.Image import Image as PILImage
+import PIL
+from PIL import Image
 from PIL import ImageDraw
 
 from handy_display import ImageHelper
@@ -145,7 +146,7 @@ class ILI9486(object):
         self._spi.max_speed_hz = 64000000  # Is this too high?
 
         # Create an image buffer.
-        self.pil_internal = PILImage.new("RGB", (width, height))
+        self.pil_internal = PIL.Image.new("RGB", (width, height))
 
     def send(self, data, is_data=True, chunk_size=4096):
         """Write a byte or array of bytes to the display. Is_data parameter
@@ -161,11 +162,6 @@ class ILI9486(object):
         # Write data a chunk at a time.
         for start in range(0, len(data), chunk_size):
             end = min(start + chunk_size, len(data))
-
-            f = open("out/data.txt", "w")
-            f.write(str(data))
-            f.close()
-
             self._spi.xfer2(data[start:end])
 
     def command(self, data):
@@ -216,7 +212,7 @@ class ILI9486(object):
         self.data(y1 & 0xFF)  # YEND
         self.command(0x2C)  # write to RAM
 
-    def display_pil(self, pil_img: PILImage):
+    def display_pil(self, pil_img: PIL.Image):
         """Write the display buffer or provided image to the hardware.  If no
         image parameter is provided the display buffer will be written to the
         hardware.  If an image is provided, it should be RGB format and the

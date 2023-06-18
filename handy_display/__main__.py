@@ -1,3 +1,4 @@
+import cProfile
 import platform
 import sys
 
@@ -59,7 +60,8 @@ def start():
 # Start execution
 if __name__ == "__main__":
     try:
-        start()
+        cProfile.run('start()')
+        # start()
     except KeyboardInterrupt:
         print("")
         print("Interrupted. Shutting down.")
