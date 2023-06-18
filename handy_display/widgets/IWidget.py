@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from pygame import Surface
 
 
 class IWidget:
@@ -14,7 +13,7 @@ class IWidget:
         pass
 
     @abstractmethod
-    def draw(self, screen_surface: Surface):
+    def update(self):
         pass
 
     @abstractmethod

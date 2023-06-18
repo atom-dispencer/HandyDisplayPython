@@ -29,10 +29,6 @@ class PygameGUI:
         self.next_widget_name = None
         self.running = True
 
-        self.mirror.add_touch_callback(
-            "PygameGUI_default", lambda x, y: self.click_event(x, y)
-        )
-
         self.last_touch_epoch_secs = 0
         self.touch_timeout_secs = 0.5
 
@@ -49,10 +45,8 @@ class PygameGUI:
             print()
             print(ex)
             print()
-            print(
-                "If you are running in a headless environment, "
-                "make sure you specified the 'headless' option to __main__.py"
-            )
+            print("If you are running in a headless environment, "
+                  "make sure you specified the 'headless' option to __main__.py")
             quit(-100)
 
     def click_event(self, x: int, y: int):
@@ -81,14 +75,13 @@ class PygameGUI:
         if not self.running:
             return
 
+        #
         # Switch in the next queued widget
+        #
         if self.next_widget_name is not None:
             if self.next_widget_name in self.widgets.keys():
-                print(
-                    "Swapping widget '{old}' for '{new}'".format(
-                        old=self.current_widget_name, new=self.next_widget_name
-                    )
-                )
+                print("Swapping widget '{old}' for '{new}'"
+                      .format(old=self.current_widget_name, new=self.next_widget_name))
 
                 old = self.get_current_widget()
                 if old is not None:
@@ -102,33 +95,47 @@ class PygameGUI:
                 print("No known widget of name {w}".format(w=self.next_widget_name))
                 self.next_widget_name = None
 
-        # Respond to events
+        #
+        # Handle events
+        #
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.shutdown()
                 return  # Prevent further pygame calls
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                position = pygame.mouse.get_pos()
-                self.click_event(position[0], position[1])
+                self.click_event(event.pos[0], event.pos[1])
 
-        self.get_current_widget().draw(self.screen_surface)
+
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    event = pygame.event.Event(pygame.MOUSEBUTTONDOWN,
+                                               button=1,
+                                               pos=(self.mirror.width / 2, self.mirror.height / 2)
+                                               )
+                    pygame.event.post(event)
+
+                    event = pygame.event.Event(pygame.MOUSEBUTTONUP,
+                                               button=1,
+                                               pos=(self.mirror.width / 2, self.mirror.height / 2)
+                                               )
+                    pygame.event.post(event)
+
+        #
+        # Update the GUI
+        #
+        self.get_current_widget().update()
         self.draw_overlay()
 
+        #
+        # Send the new screen to the mirror
+        #
         if self.mirror.ready_for_next_frame():
             # Copy the pixels to a new buffer to avoid race conditions!
-            # array3d = pygame.surfarray.array3d(self.screen_surface)
-
             img_bytes = pygame.image.tobytes(self.screen_surface, "RGB")
             pil_img = PIL.Image.frombytes(
                 "RGB", (self.mirror.width, self.mirror.height), img_bytes
             )
-
-            # Saving is successful!!
-            # pygame.image.save(self.screen_surface, "out/surface.png")
-            # pil_img.save("out/pil.png")
-
             self.mirror.next_frame(pil_img)
-
         self.mirror.process_events()
 
         # Flip the display buffers (or something like that)

@@ -2,6 +2,7 @@ import numbers
 import threading
 import time
 
+import pygame
 from PIL import Image
 
 from handy_display.mirrors.Elegoo35.ILI9486 import ILI9486
@@ -80,8 +81,9 @@ class Elegoo35Mirror(IMirror):
 
     def process_events(self):
         if self.touched():
-            (x, y) = self.get_touch_position()
-            self.screen_touched(x, y)
+            pos = self.get_touch_position()
+            event = pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=pos)
+            pygame.event.post(event)
 
     def ready_for_next_frame(self):
         return self.spi_thread is None or not self.spi_thread.is_alive()
