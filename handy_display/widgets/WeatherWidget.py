@@ -4,8 +4,6 @@ import threading
 
 import pygame
 import requests
-from pygame import Surface
-import thorpy as thor
 
 from handy_display import Secrets
 from handy_display.widgets.IWidget import IWidget
@@ -28,24 +26,7 @@ class WeatherWidget(IWidget):
 
         self.roboto_font = pygame.font.SysFont("resources/Roboto/Roboto-Black.ttf", 16)
 
-        self.thor_group = None
-        self.thor_updater = None
-
-    def unclick(self):
-        print("Click!!")
-
     def on_show(self):
-        thor.init(self.gui.screen_surface)
-        thor.call_before_gui(self.draw_background)
-
-        hello_button = thor.Button("Hello, Pi!")
-        hello_button.center_on(self.gui.screen_surface)
-        hello_button.at_unclick = self.unclick
-
-        self.thor_group = thor.Group([
-            hello_button
-        ])
-        self.thor_updater = self.thor_group.get_updater()
         pass
 
     def draw_background(self):
@@ -57,8 +38,6 @@ class WeatherWidget(IWidget):
         for ev in events:
             if ev.type == pygame.MOUSEBUTTONDOWN:
                 print("Weather clicked at", ev.pos)
-
-        self.thor_updater.update(events=events)
 
         # Check if time to refresh info
         if time.time_ns() - self.last_refresh_ns > TIMEOUT_NS:

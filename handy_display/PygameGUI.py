@@ -86,28 +86,11 @@ class PygameGUI:
         #
         # Handle events
         #
-        events = pygame.event.get()
+        events: list[pygame.event.Event] = pygame.event.get()
         for ev in events:
             if ev.type == pygame.QUIT:
-                events.remove(ev)
                 self.shutdown()
                 return  # Prevent further pygame calls
-
-            elif ev.type == pygame.KEYDOWN:
-                events.remove(ev)
-
-                if ev.key == pygame.K_SPACE:
-                    event = pygame.event.Event(pygame.MOUSEBUTTONDOWN,
-                                               button=1,
-                                               pos=(self.mirror.width / 2, self.mirror.height / 2)
-                                               )
-                    pygame.event.post(event)
-
-                    event = pygame.event.Event(pygame.MOUSEBUTTONUP,
-                                               button=1,
-                                               pos=(self.mirror.width / 2, self.mirror.height / 2)
-                                               )
-                    pygame.event.post(event)
 
         #
         # Update the GUI

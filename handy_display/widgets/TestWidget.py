@@ -46,5 +46,4 @@ class TestWidget(IWidget):
             self.test.rect.w = random.randint(50, 150)
             self.test.rect.h = random.randint(50, 100)
             self.gui.request_widget("weather")
-        print("Click event over!")
         return
