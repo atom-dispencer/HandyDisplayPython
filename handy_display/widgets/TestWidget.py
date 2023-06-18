@@ -22,7 +22,12 @@ class TestWidget(IWidget):
     def on_show(self):
         print("Showing test widget!")
 
-    def update(self):
+    def update(self, events: list[pygame.event.Event]):
+
+        for ev in events:
+            if ev.type == pygame.MOUSEBUTTONDOWN:
+                self.click_event(ev.pos)
+
         self.gui.screen_surface.fill(self.bg_color)
         self.group.draw(self.gui.screen_surface)
         return
@@ -30,7 +35,8 @@ class TestWidget(IWidget):
     def on_hide(self):
         print("Removing test widget")
 
-    def click_event(self, x: int, y: int):
+    def click_event(self, pos: tuple[int, int]):
+        (x, y) = pos
         print("TestWidget clicked at ({x},{y})".format(x=x, y=y))
         if self.test.rect.collidepoint(x, y):
             print("Switching to Weather!")

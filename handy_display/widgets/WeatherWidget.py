@@ -49,10 +49,8 @@ class WeatherWidget(IWidget):
         print("Background!")
         self.gui.screen_surface.fill((55, 55, 55))
 
-    def update(self):
-        events = pygame.event.get()
-        mouse_rel = pygame.mouse.get_rel()
-        self.thor_updater.update(events=events, mouse_rel=mouse_rel)
+    def update(self, events: list[pygame.event.Event]):
+        self.thor_updater.update(events=events)
 
         # Check if time to refresh info
         if time.time_ns() - self.last_refresh_ns > TIMEOUT_NS:
@@ -99,5 +97,5 @@ class WeatherWidget(IWidget):
             print("An error occurred decoding the response from the OpenWeather API")
             print(je)
 
-    def click_event(self, x: int, y: int):
+    def click_event(self, pos: tuple[int, int]):
         pass

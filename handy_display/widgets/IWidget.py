@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from abc import abstractmethod
 
+import pygame.event
+
 
 class IWidget:
 
@@ -13,7 +15,7 @@ class IWidget:
         pass
 
     @abstractmethod
-    def update(self):
+    def update(self, events: list[pygame.event.Event]):
         pass
 
     @abstractmethod
@@ -21,5 +23,5 @@ class IWidget:
         pass
 
     @abstractmethod
-    def click_event(self, x: int, y: int):
+    def click_event(self, pos: tuple[int, int]):
         pass

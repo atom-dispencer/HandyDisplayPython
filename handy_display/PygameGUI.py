@@ -49,18 +49,6 @@ class PygameGUI:
                   "make sure you specified the 'headless' option to __main__.py")
             quit(-100)
 
-    def click_event(self, x: int, y: int):
-        # Throttle touch frequency
-        if time.time() - self.last_touch_epoch_secs < self.touch_timeout_secs:
-            return
-        self.last_touch_epoch_secs = time.time()
-
-        # Check overlay collisions first
-        #
-
-        # Pass touch down to widget
-        self.get_current_widget().click_event(x, y)
-
     def request_widget(self, name: str):
         self.next_widget_name = name
 
@@ -98,16 +86,17 @@ class PygameGUI:
         #
         # Handle events
         #
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
+        events = pygame.event.get()
+        for ev in events:
+            if ev.type == pygame.QUIT:
+                events.remove(ev)
                 self.shutdown()
                 return  # Prevent further pygame calls
-            elif event.type == pygame.MOUSEBUTTONDOWN:
-                self.click_event(event.pos[0], event.pos[1])
 
+            elif ev.type == pygame.KEYDOWN:
+                events.remove(ev)
 
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_SPACE:
+                if ev.key == pygame.K_SPACE:
                     event = pygame.event.Event(pygame.MOUSEBUTTONDOWN,
                                                button=1,
                                                pos=(self.mirror.width / 2, self.mirror.height / 2)
@@ -123,7 +112,7 @@ class PygameGUI:
         #
         # Update the GUI
         #
-        self.get_current_widget().update()
+        self.get_current_widget().update(events)
         self.draw_overlay()
 
         #
