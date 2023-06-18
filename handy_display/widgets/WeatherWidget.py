@@ -50,6 +50,11 @@ class WeatherWidget(IWidget):
         self.gui.screen_surface.fill((55, 55, 55))
 
     def update(self, events: list[pygame.event.Event]):
+
+        for ev in events:
+            if ev.type == pygame.MOUSEBUTTONDOWN:
+                print("Weather clicked at", ev.pos)
+
         self.thor_updater.update(events=events)
 
         # Check if time to refresh info
@@ -96,6 +101,3 @@ class WeatherWidget(IWidget):
         except json.JSONDecodeError as je:
             print("An error occurred decoding the response from the OpenWeather API")
             print(je)
-
-    def click_event(self, pos: tuple[int, int]):
-        pass

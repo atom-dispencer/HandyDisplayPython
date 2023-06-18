@@ -21,7 +21,3 @@ class IWidget:
     @abstractmethod
     def on_hide(self):
         pass
-
-    @abstractmethod
-    def click_event(self, pos: tuple[int, int]):
-        pass
