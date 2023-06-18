@@ -31,13 +31,16 @@ class WeatherWidget(IWidget):
         self.thor_group = None
         self.thor_updater = None
 
+    def unclick(self):
+        print("Click!!")
+
     def on_show(self):
         thor.init(self.gui.screen_surface)
         thor.call_before_gui(self.draw_background)
 
         hello_button = thor.Button("Hello, Pi!")
         hello_button.center_on(self.gui.screen_surface)
-        hello_button.at_unclick = lambda: print("Click!!")
+        hello_button.at_unclick = self.unclick
 
         self.thor_group = thor.Group([
             hello_button
