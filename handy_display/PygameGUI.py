@@ -1,16 +1,15 @@
 import os
-import time
 
 import PIL.Image
 import pygame
 from pygame import Surface
 
 from handy_display import Options
+from handy_display.mirrors.IMirror import IMirror
 from handy_display.widgets.IWidget import IWidget
 
 
 class PygameGUI:
-    # noinspection PyTypeChecker
     def __init__(self, mirror_in, options: Options):
         print("Creating PygameGUI with mirror " + str(mirror_in))
 
@@ -20,17 +19,20 @@ class PygameGUI:
         os.environ["SDL_AUDIODRIVER"] = "dummy"
 
         # Setup instance variables
-        self.mirror = mirror_in
-        self.running: bool = False
+        self.mirror: IMirror = mirror_in
+        self._running: bool = False
         # The pygame surface backing the GUI
         self.screen_surface: Surface = None
-        self.widgets = {}
-        self.current_widget_name = None
+        self._widgets: dict[str, IWidget] = {}
+        self._current_widget_name = None
         self.next_widget_name = None
-        self.running = True
+        self._running = True
+        self.overlay_dirty = True
 
         self.last_touch_epoch_secs = 0
         self.touch_timeout_secs = 0.5
+
+        self._dirty = True
 
         # Initialise pygame
         try:
@@ -50,31 +52,61 @@ class PygameGUI:
             quit(-100)
 
     def request_widget(self, name: str):
+        f"""
+        Queue the given {IWidget} for display.
+        The widget will change at the start of the next PygameGUI refresh.
+        :param name: The name of the widget in {self._widgets} to switch to
+        :return:
+        """
         self.next_widget_name = name
 
     def get_current_widget(self) -> IWidget:
+        f"""
+        Get the currently displayed {IWidget}.
+        """
         return (
-            self.widgets[self.current_widget_name]
-            if self.current_widget_name is not None
+            self._widgets[self._current_widget_name]
+            if self._current_widget_name is not None
             else None
         )
 
+    def make_dirty(self):
+        f"""
+        Notify the PygameGUI that the screen must be redrawn.
+        Mostly called by {IWidget}s when their contents change.
+        Cannot be uncalled, and {self._dirty} is NOT for widgets to set directly.
+        
+        :return: Nothing.
+        """
+        self._dirty = True
+
     def refresh(self):
-        if not self.running:
+        """
+        Do the next update and rendering cycle.
+        Very complicated method.
+
+        1) Switch in the next queued widget
+        2) Handle events in the GUI itself
+        3) Handle events in the overlay, then current widget
+        4) Draw the current widget, then the overlay over it
+        5) Send the screen to the mirror
+        :return: Nothing.
+        """
+        if not self._running:
             return
 
         #
         # Switch in the next queued widget
         #
         if self.next_widget_name is not None:
-            if self.next_widget_name in self.widgets.keys():
+            if self.next_widget_name in self._widgets.keys():
                 print("Swapping widget '{old}' for '{new}'"
-                      .format(old=self.current_widget_name, new=self.next_widget_name))
+                      .format(old=self._current_widget_name, new=self.next_widget_name))
 
                 old = self.get_current_widget()
                 if old is not None:
                     old.on_hide()
-                self.current_widget_name = self.next_widget_name
+                self._current_widget_name = self.next_widget_name
 
                 new = self.get_current_widget()
                 new.on_show()
@@ -95,8 +127,11 @@ class PygameGUI:
         #
         # Update the GUI
         #
-        self.get_current_widget().update(events)
-        self.draw_overlay()
+        self._widgets["overlay"].handle_events(events)
+        self.get_current_widget().handle_events(events)
+        if self._dirty:
+            self.get_current_widget().draw(self.screen_surface)
+            self._widgets["overlay"].draw(self.screen_surface)
 
         #
         # Send the new screen to the mirror
@@ -113,12 +148,13 @@ class PygameGUI:
         # Flip the display buffers (or something like that)
         pygame.display.flip()
 
-    def draw_overlay(self):
-        pygame.draw.rect(self.screen_surface, (0, 0, 0), (0, 50, 50, 50))
-
     def shutdown(self):
+        """
+        Close up shop and take out the trash.
+        :return: Nothing.
+        """
         print("Killing PygameGUI")
-        self.running = False
+        self._running = False
 
         if self.mirror is not None:
             self.mirror.shutdown()

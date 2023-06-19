@@ -22,15 +22,17 @@ class TestWidget(IWidget):
     def on_show(self):
         print("Showing test widget!")
 
-    def update(self, events: list[pygame.event.Event]):
+    def handle_events(self, events: list[pygame.event.Event]):
 
         for ev in events:
             if ev.type == pygame.MOUSEBUTTONDOWN:
                 self.change_to_weather(ev.pos)
 
+        return
+
+    def draw(self, screen_surface: pygame.surface.Surface):
         self.gui.screen_surface.fill(self.bg_color)
         self.group.draw(self.gui.screen_surface)
-        return
 
     def on_hide(self):
         print("Removing test widget")
