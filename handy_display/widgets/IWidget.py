@@ -6,6 +6,8 @@ import numpy
 
 import pygame.event
 
+from handy_display.widgets.Config import Config
+
 
 def relative(pos: tuple[int, int], to: tuple[int, int]):
     return tuple(numpy.add(pos, to))
@@ -43,8 +45,10 @@ def anchorpoint(anchor: Anchor, dimensions: tuple[int, int]) -> tuple[int, int]:
 
 class IWidget:
 
-    def __init__(self, gui):
+    def __init__(self, gui, name: str, default_config: dict[str, object]):
         self.gui = gui
+        self.name: str = name
+        self.config: Config = Config(name, default_config)
 
     @abstractmethod
     def on_show(self):

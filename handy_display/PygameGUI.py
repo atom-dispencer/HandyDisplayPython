@@ -51,6 +51,9 @@ class PygameGUI:
                   "make sure you specified the 'headless' option to __main__.py")
             quit(-100)
 
+    def add_widget(self, name: str, widget: IWidget):
+        self._widgets[name] = widget
+
     def request_widget(self, name: str):
         f"""
         Queue the given {IWidget} for display.

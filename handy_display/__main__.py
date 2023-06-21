@@ -4,9 +4,9 @@ import sys
 
 from handy_display.Options import Options, MirrorType
 from handy_display.PygameGUI import PygameGUI
-from handy_display.widgets.OverlayWidget import OverlayWidget
-from handy_display.widgets.TestWidget import TestWidget
-from handy_display.widgets.WeatherWidget import WeatherWidget
+from handy_display.widgets.OverlayWidget import *
+from handy_display.widgets.TestWidget import *
+from handy_display.widgets.WeatherWidget import *
 
 #
 def get_relevant_mirror(mirror_type):
@@ -34,9 +34,9 @@ def start():
     mirror = get_relevant_mirror(options.screen_type)
     gui = PygameGUI(mirror, options)
 
-    gui._widgets["overlay"] = OverlayWidget(gui)
-    gui._widgets["test"] = TestWidget(gui)
-    gui._widgets["weather"] = WeatherWidget(gui)
+    gui.add_widget(OverlayWidget.NAME, OverlayWidget(gui))
+    gui.add_widget(TestWidget.NAME, TestWidget(gui))
+    gui.add_widget(WeatherWidget.NAME, WeatherWidget(gui))
 
     gui.request_widget("test")
 
@@ -61,8 +61,8 @@ def start():
 # Start execution
 if __name__ == "__main__":
     try:
-        cProfile.run('start()')
-        # start()
+        # cProfile.run('start()')
+        start()
     except KeyboardInterrupt:
         print("")
         print("Interrupted. Shutting down.")

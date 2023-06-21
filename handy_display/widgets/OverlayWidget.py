@@ -1,19 +1,21 @@
-import time
-
 import datetime
-
-import pygame.surface
 
 from handy_display.widgets.IWidget import IWidget
 from handy_display.PygameLoaderHelper import *
+
 
 ROBOTO_16 = font("Roboto/Roboto-Black.ttf", 16)
 
 
 class OverlayWidget(IWidget):
 
+    NAME = "overlay"
+    DEFAULT_CONFIG = {
+        "datetime_format": "%a %d/%m/%y - %H:%M:%S"
+    }
+
     def __init__(self, gui):
-        super().__init__(gui)
+        super().__init__(gui, self.NAME, self.DEFAULT_CONFIG)
 
         self.display_datetime = "??:?? - ??/??/??"
 
@@ -22,7 +24,7 @@ class OverlayWidget(IWidget):
 
     def handle_events(self, events: list[pygame.event.Event]):
 
-        datetime_str = datetime.datetime.now().strftime("%a %d/%m/%y - %H:%M:%S")
+        datetime_str = datetime.datetime.now().strftime(self.config["datetime_format"])
         if not self.display_datetime == datetime_str:
             self.display_datetime = datetime_str
             self.gui.make_dirty()

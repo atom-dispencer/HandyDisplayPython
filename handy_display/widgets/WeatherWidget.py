@@ -9,6 +9,7 @@ from handy_display import Secrets
 from handy_display.widgets.IWidget import *
 from handy_display.PygameLoaderHelper import *
 
+
 TIMEOUT_NS = 5_000_000_000  # 5 second timeout  #TODO Change weather timeout to >5s (revert from testing)
 THREAD_NAME = "weather_refresh_thread"
 
@@ -18,8 +19,13 @@ ROBOTO_16 = font("Roboto/Roboto-Black.ttf", 16)
 
 class WeatherWidget(IWidget):
 
+    NAME = "weather"
+    DEFAULT_CONFIG = {
+        "": ""
+    }
+
     def __init__(self, gui):
-        super().__init__(gui)
+        super().__init__(gui, self.NAME, self.DEFAULT_CONFIG)
         self.last_refresh_ns = 0
         self.refresh_thread = None
         self.open_weather_data = None
