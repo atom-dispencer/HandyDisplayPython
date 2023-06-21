@@ -44,6 +44,7 @@ class BoxAlign:
     """Class for aligning boxes on the screen.
     Uses a 'builder' pattern and methods are chainable for ease-of-use.
     """
+
     def __init__(self,
                  container: tuple[float, float, float, float],
                  local_origin=Origin.TOP_LEFT,

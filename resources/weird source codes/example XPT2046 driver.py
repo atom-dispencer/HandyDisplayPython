@@ -1,9 +1,10 @@
-import spidev
-import RPi.GPIO as GPIO
-import time
-from PIL import Image
 import numbers
+import time
+
+import RPi.GPIO as GPIO
 import numpy as np
+import spidev
+from PIL import Image
 
 ILI9341_TFTWIDTH = 240
 ILI9341_TFTHEIGHT = 320

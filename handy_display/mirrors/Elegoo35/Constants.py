@@ -1,6 +1,5 @@
 # How do I give NeilAlexanderHiggins a medal? https://forums.raspberrypi.com/viewtopic.php?t=330844
 # The pi has 1 bus (#0) and 2 devices (CE0 and CE1)
-from enum import Enum
 
 
 class Channels:

@@ -1,13 +1,11 @@
-import numbers
 import threading
 import time
 
 import pygame
-from PIL import Image
 
+from handy_display.mirrors.Elegoo35.Constants import *
 from handy_display.mirrors.Elegoo35.ILI9486 import ILI9486
 from handy_display.mirrors.IMirror import IMirror
-from handy_display.mirrors.Elegoo35.Constants import *
 
 # https://pinout.xyz/pinout/spi
 # https://pypi.org/project/spidev/

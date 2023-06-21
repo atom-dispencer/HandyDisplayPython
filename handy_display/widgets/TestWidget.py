@@ -1,8 +1,6 @@
 import random
-import time
 
 import pygame.event
-from pygame import Surface
 from pygame.sprite import Group
 
 from handy_display.sprite.TestSprite import TestSprite
@@ -10,7 +8,6 @@ from handy_display.widgets.IWidget import IWidget
 
 
 class TestWidget(IWidget):
-
     NAME = "test"
     DEFAULT_CONFIG = {
         "": ""

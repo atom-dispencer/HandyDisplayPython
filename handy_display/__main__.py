@@ -1,4 +1,3 @@
-import cProfile
 import platform
 import sys
 
@@ -7,6 +6,7 @@ from handy_display.PygameGUI import PygameGUI
 from handy_display.widgets.OverlayWidget import *
 from handy_display.widgets.TestWidget import *
 from handy_display.widgets.WeatherWidget import *
+
 
 #
 def get_relevant_mirror(mirror_type):

@@ -8,5 +8,4 @@ class TestSprite(Sprite):
         super(TestSprite, self).__init__()
 
         self.image = pygame.image.load("resources/test.png").convert()
-        self.rect = pygame.Rect(x, y, r*2, r*2)
-
+        self.rect = pygame.Rect(x, y, r * 2, r * 2)

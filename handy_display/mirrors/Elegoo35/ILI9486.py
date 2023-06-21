@@ -122,7 +122,7 @@ class ILI9486(object):
     """Representation of an ILI9486 TFT LCD."""
 
     def __init__(
-        self, data_cmd, spi, rst=None, width=ILI9486_TFTWIDTH, height=ILI9486_TFTHEIGHT
+            self, data_cmd, spi, rst=None, width=ILI9486_TFTWIDTH, height=ILI9486_TFTHEIGHT
     ):
         """Create an instance of the display using SPI communication.  Must
         provide the GPIO pin number for the D/C pin and the SPI driver.  Can

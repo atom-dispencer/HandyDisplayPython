@@ -1,15 +1,13 @@
 import json
-import time
 import threading
+import time
 
-import pygame
 import requests
 
 from handy_display import Secrets
+from handy_display.PygameLoaderHelper import *
 from handy_display.widgets.BoxAlign import BoxAlign, Origin
 from handy_display.widgets.IWidget import *
-from handy_display.PygameLoaderHelper import *
-
 
 TIMEOUT_NS = 5_000_000_000  # 5 second timeout  #TODO Change weather timeout to >5s (revert from testing)
 THREAD_NAME = "weather_refresh_thread"
@@ -19,7 +17,6 @@ ROBOTO_16 = font("Roboto/Roboto-Black.ttf", 16)
 
 
 class WeatherWidget(IWidget):
-
     NAME = "weather"
     DEFAULT_CONFIG = {
         "": ""
@@ -58,8 +55,8 @@ class WeatherWidget(IWidget):
 
         weather_text = self.open_weather_data["main"]["temp"] if self.open_weather_data is not None else "No data"
         rendered_text = ROBOTO_16.render("Kelvin: " + str(weather_text), True, (255, 255, 255))
-        alignment: BoxAlign = BoxAlign((0, 0) + surf.get_size())\
-            .global_origin(Origin.CENTRE)\
+        alignment: BoxAlign = BoxAlign((0, 0) + surf.get_size()) \
+            .global_origin(Origin.CENTRE) \
             .local_origin(Origin.CENTRE)
         pos = alignment.apply_to(rendered_text.get_size())
         surf.blit(rendered_text, pos)

@@ -1,6 +1,5 @@
 import os
 
-
 # name:value;name:value;
 # open_weather:1234;other:ABCD
 env = os.getenv("HANDY_DISPLAY")

@@ -10,8 +10,8 @@ Smallfont inspired by:			UTFT library
 Code based on:				FBTFT library
 """
 
-import time
 import sys
+import time
 
 __author__ = "Jan Havran"
 

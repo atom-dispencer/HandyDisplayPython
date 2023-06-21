@@ -1,8 +1,5 @@
-from __future__ import annotations
-
 from abc import abstractmethod
 from enum import Enum
-import numpy
 
 import pygame.event
 
