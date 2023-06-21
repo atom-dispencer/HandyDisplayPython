@@ -6,5 +6,5 @@ setup(
     license="MIT",
     url="https://github.com/GenElectrovise/HandyDisplay",
     version="1.0.0",
-    packages=["pygame", "spidev", "RPi"]
+    packages=["pygame", "spidev", "RPi", "requests"]
 )
