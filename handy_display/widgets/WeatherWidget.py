@@ -6,6 +6,7 @@ import pygame
 import requests
 
 from handy_display import Secrets
+from handy_display.widgets.BoxAlign import BoxAlign, Origin
 from handy_display.widgets.IWidget import *
 from handy_display.PygameLoaderHelper import *
 
@@ -57,11 +58,11 @@ class WeatherWidget(IWidget):
 
         weather_text = self.open_weather_data["main"]["temp"] if self.open_weather_data is not None else "No data"
         rendered_text = ROBOTO_16.render("Kelvin: " + str(weather_text), True, (255, 255, 255))
-        point = relative((0, 0), anchorpoint(Anchor.CENTRE, surf.get_size()))
-        offset = centred(point, rendered_text.get_size())
-        surf.blit(rendered_text, offset)
-
-        self.gui_dirty = False
+        alignment: BoxAlign = BoxAlign((0, 0) + surf.get_size())\
+            .global_origin(Origin.CENTRE)\
+            .local_origin(Origin.CENTRE)
+        pos = alignment.apply_to(rendered_text.get_size())
+        surf.blit(rendered_text, pos)
 
     def on_hide(self):
         pass
