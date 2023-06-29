@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+name = "HandyDisplay"
+authors = [
+    { name = "GenElectrovise", email = "nope" }
+]
+description = The driving software for one particularly handy display.
+readme = "README.md"
+license = { file = "LICENSE.txt" }
+dynamic = "version"
+requires_python = ">=3.7"
+classifiers = [
+    "Programming Langauge :: Python
+]
+dependencies = [
+    "pygame>=2.4.0",
+	"requests>=2.31.0",
+	"pillow>=9.5.0"
+]
+
+
+[tool.setuptools]
+packages = find
+
+
+[tool.setuptools.package-data]
+handy_display = ["resources/"]
+
+
+[project.urls]
+GitHub = "https://github.com/GenElectrovise/HandyDisplay"
+
+
+[project.optional-dependencies]
+spi = [
+    "spidev",
+    "RPi"
+]
+
+# Note to self: Need to define proper entry point for headless/ful
+[project.entry-points."handy_display_headless"]
+handy-display-cli = "spam:main_cli"
+
+##### 
+
+#[options.packages.find]
+#exclude = 
+#	test/*
+#	config/*
+
+#[options.package_data]
+#placeholder = resources/*
+
