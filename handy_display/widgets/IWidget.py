@@ -8,10 +8,11 @@ from handy_display.widgets.Config import Config
 
 class IWidget:
 
-    def __init__(self, gui, name: str, default_config: dict[str, object]):
+    def __init__(self, gui, internal_name: str, display_name: str, default_config: dict[str, object]):
         self.gui = gui
-        self.name: str = name
-        self.config: Config = Config(name, default_config)
+        self.internal_name: str = internal_name
+        self.display_name: str = display_name
+        self.config: Config = Config(internal_name, default_config)
 
     @abstractmethod
     def on_show(self):

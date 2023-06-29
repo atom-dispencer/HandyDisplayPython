@@ -1,6 +1,7 @@
 from enum import Enum
 
 import numpy
+from pygame import Surface
 
 
 class Origin(Enum):
@@ -54,10 +55,14 @@ class BoxAlign:
         Only the container (X,Y,W,H) is required here,
         e.g. to centre on 0,0: `(0, 0) + (width, height)` or `(0, 0, width, height)`
         Best practise is to call chainable methods for configuration."""
-        self._container = container
-        self._local_origin = local_origin
-        self._global_origin = global_origin
-        self._transform = transform
+        self._container = None
+        self._local_origin = None
+        self._global_origin = None
+        self._transform = None
+        self.container(container)
+        self.local_origin(local_origin)
+        self.global_origin(global_origin)
+        self.transform(transform)
 
     def container(self, container: tuple[float, float, float, float]):
         """Set the container within which objects can be aligned"""
@@ -70,14 +75,9 @@ class BoxAlign:
         self._local_origin = origin
         return self
 
-    def global_origin(self, origin: Origin = None, point: tuple[float, float] = None):
+    def global_origin(self, origin: Origin | tuple[float, float]):
         """Set the world origin, from which all transformations are calculated."""
-        if origin is not None:
-            self._global_origin = get_local_box_origin_point(self._container[-2:], origin)
-        elif point is not None:
-            self._global_origin = point
-        else:
-            raise Exception("world_origin must have 1 argument!")
+        self._global_origin = origin
         return self
 
     def transform(self, vector: tuple[float, float]):
@@ -85,15 +85,22 @@ class BoxAlign:
         self._transform = vector
         return self
 
-    def apply_to(self, box: tuple[float, float]) -> tuple[float, float]:
+    def apply_to(self, box: Surface | tuple[float, float]) -> tuple[float, float]:
         """Apply this alignment.
         :param box: The box to align
         :return: The X,Y position the box should be moved to, to be correctly aligned.
         """
+        if isinstance(box, Surface):
+            box = box.get_size()
+
+        global_origin_point = self._global_origin
+        if global_origin_point in Origin:
+            global_origin_point = get_local_box_origin_point(self._container[-2:], global_origin_point)
+
         relative = numpy.multiply(-1, get_local_box_origin_point(box, self._local_origin))
         combined = [
             self._container[:2],
-            self._global_origin,
+            global_origin_point,
             self._transform,
             relative
         ]

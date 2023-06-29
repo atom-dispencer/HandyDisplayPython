@@ -1,0 +1,10 @@
+1. The Elegoo 3.5 Inch Touch Screen User Manual（Arduino-English）V1.00.2017.08.26.pdf file will teach you how to 
+install the driver software for the 3.5-inch screen on a raspberry pi or how to use a configured system image. 
+The "Software" folder contains the software you need.
+
+2. For raspberry pi 4, the driver software in the PDF file will not work, please use the driver software in the attached 
+link: https://github.com/MrYacha/LCD-show
+
+3. For raspberry pi 3B+, the configured Raspbian system image in the PDF file will not work. Please download the 
+configured Raspbian system image from this link:
+https://drive.google.com/file/d/14pDL4I75tBrhkfejC5Qk1PgMDEX0aTgK/view?usp=sharing

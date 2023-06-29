@@ -1,0 +1,73 @@
+
+
+Links to Pi pins:
+Plan view of back of display (note register posn)
+Left/right reflection of top 13 rows of Pi GPIO
+The screen is designed to be able to be placed directly onto the Pi.
+These are the pins that would be connected in that case. 
+
+GPIO  Screen   Screen     GPIO
+-	-		--		-	-
+5V	| 2		00		1	| 3.3V
+5V	| 4		00		3	| 2
+GND	| 6 	00		5	| 3	
+14	| 8		00		7	| 4
+15	| 10	00		9	| GND	
+18	| 12	00		11	| 17	
+GND	| 14	00		13	| 27		
+23	| 16	00		15	| 22
+24	| 18	00		17	| 3.3V
+GND	| 20	00		19	| 10
+25	| 22	00		21	| 9
+8	| 24	00		23	| 11
+7	| 26	00		25	| GND
+ 
+					  Registers
+			-XXX-   -XXX-   -XXX-   -XXX-
+			-XXX-   -XXX-   -XXX-   -XXX-
+			-XXX-   -XXX-   -XXX-   -XXX-
+			-XXX-   -XXX-   -XXX-   -XXX-
+			-XXX-   -XXX-   -XXX-   -XXX-
+			-XXX-   -XXX-   -XXX-   -XXX-
+			-XXX-   -XXX-   -XXX-   -XXX-
+			-XXX-   -XXX-   -XXX-   -XXX-
+
+
+
+
+
+ === PINS ON THE DISPLAY ===
+
+Notes:
+	All GND and 5V connections appear to work
+	3.3V is insufficient to turn on
+
+Key:
+3				3.3V Power positive
+5				5V Power positive
+NV				NC (No connection?)
+GND				Ground
+TP_IRQ			Touch Panel Interrupt, 	active low (what's RQ?)
+LCD_RS			LCD instruction control, instruction/data Register Selection
+LCD_SI/TP_SI	LCD/Touch Panel Serial In. SPI In.
+TP_SO			Touch Panel Serial Out. SPI Out.
+RST				Reset
+LCD_SCK/TP_SCK	LCD/TP Serial ClocK. SPI clock for LCD/Touch panel
+LCD_CS			LCD Chip Select. Active low.
+TP_CS			Touch Panel Chip Select. Active low.
+
+	Even		Odd
+2	5			3
+4	5			NV
+6	GND			NV
+8	NV			NV
+10	NV			
+12	NV			TP_IRQ
+14	GND			NV
+16	NV			NV
+18	LCD_RS		3
+20	GND			LCD_SI/TP_SI
+22	RST			TP_SO
+24	LCD_CS		LCD_SCK/TP_SCK
+26	TP_CS		GND
+

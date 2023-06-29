@@ -21,7 +21,8 @@ ROBOTO_16 = font("Roboto/Roboto-Black.ttf", 16)
 
 
 class WeatherWidget(IWidget):
-    NAME = "weather"
+    INTERNAL_NAME = "weather"
+    DISPLAY_NAME = "Weather"
     DEFAULT_CONFIG = {
         "lat": "51.4838968",
         "lon": "-0.6043911",
@@ -34,7 +35,7 @@ class WeatherWidget(IWidget):
     }
 
     def __init__(self, gui):
-        super().__init__(gui, self.NAME, self.DEFAULT_CONFIG)
+        super().__init__(gui, self.INTERNAL_NAME, self.DISPLAY_NAME, self.DEFAULT_CONFIG)
         self.last_refresh_ns = 0
         self.refresh_thread = None
         self.open_weather_data = None

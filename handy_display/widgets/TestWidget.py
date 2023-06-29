@@ -8,13 +8,14 @@ from handy_display.widgets.IWidget import IWidget
 
 
 class TestWidget(IWidget):
-    NAME = "test"
+    INTERNAL_NAME = "test"
+    DISPLAY_NAME = "Test"
     DEFAULT_CONFIG = {
         "": ""
     }
 
     def __init__(self, gui):
-        super().__init__(gui, self.NAME, self.DEFAULT_CONFIG)
+        super().__init__(gui, self.INTERNAL_NAME, self.DISPLAY_NAME , self.DEFAULT_CONFIG)
         self.bg_color = (255, 255, 255)
 
         self.group = Group()

@@ -35,9 +35,9 @@ def start():
     mirror = get_relevant_mirror(options.screen_type)
     gui = PygameGUI(mirror, options)
 
-    gui.add_widget(OverlayWidget.NAME, OverlayWidget(gui))
-    gui.add_widget(TestWidget.NAME, TestWidget(gui))
-    gui.add_widget(WeatherWidget.NAME, WeatherWidget(gui))
+    gui.add_widget(OverlayWidget.INTERNAL_NAME, OverlayWidget(gui))
+    gui.add_widget(TestWidget.INTERNAL_NAME, TestWidget(gui))
+    gui.add_widget(WeatherWidget.INTERNAL_NAME, WeatherWidget(gui))
 
     gui.request_widget("test")
 
