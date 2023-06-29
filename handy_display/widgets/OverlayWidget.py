@@ -47,22 +47,62 @@ class OverlayWidget(IWidget):
     INTERNAL_NAME = "overlay"
     DISPLAY_NAME = "Overlay"
     DEFAULT_CONFIG = {
-        "datetime_format": "%a %d/%m/%y - %H:%M:%S"
+        "datetime_format": "%a %d/%m/%y - %H:%M:%S",
+        "widget_order": ["test", "weather"]
     }
 
     def __init__(self, gui):
         super().__init__(gui, self.INTERNAL_NAME, self.DISPLAY_NAME, self.DEFAULT_CONFIG)
+        self.verify_order()
 
         self.display_datetime = "??:?? - ??/??/??"
+
+    def verify_order(self):
+        lst = self.config["widget_order"]
+        adj = [lst[x] for x in range(len(lst) - 1) if lst[x] == lst[x + 1]]
+        if len(adj) > 0 or lst[0] == lst[len(lst) - 1]:
+            raise Exception("The given widget order contains neighboring duplicate elements. "
+                            "This may cause unexpected behaviour. "
+                            "For example: ['test', 'weather', 'weather'], or ['test', 'weather', 'test']")
 
     def on_show(self):
         pass
 
     def handle_events(self, events: list[pygame.event.Event]):
+        for ev in events:
+            if ev.type == pygame.MOUSEBUTTONDOWN:
+                self.check_clicks(ev.pos)
+
         datetime_str = datetime.datetime.now().strftime(self.config["datetime_format"])
         if not self.display_datetime == datetime_str:
             self.display_datetime = datetime_str
             self.gui.make_dirty()
+
+    def check_clicks(self, pos):
+        x, y = pos
+        last_rect_left = align_left_toggle.last_rect
+        last_rect_right = align_right_toggle.last_rect
+        if last_rect_left is not None and last_rect_left.collidepoint(x, y):
+            self.next_widget(forwards=False)
+        elif last_rect_right is not None and last_rect_right.collidepoint(x, y):
+            self.next_widget(forwards=True)
+
+    def next_widget(self, forwards: bool = True):
+        current = self.gui.current_widget_name
+
+        order: list = self.config["widget_order"]
+
+        target_index = 0
+        if current in order:
+            target_index = order.index(current) + (1 if forwards else -1)
+
+        if target_index >= len(order):
+            target_index = 0
+        elif target_index < 0:
+            target_index = len(order) - 1
+
+        next_name = order[target_index]
+        self.gui.request_widget(next_name)
 
     def draw(self, surf: pygame.surface.Surface):
 

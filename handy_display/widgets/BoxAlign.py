@@ -1,6 +1,7 @@
 from enum import Enum
 
 import numpy
+import pygame
 from pygame import Surface
 
 
@@ -59,10 +60,15 @@ class BoxAlign:
         self._local_origin = None
         self._global_origin = None
         self._transform = None
+        self._last_rect = None
         self.container(container)
         self.local_origin(local_origin)
         self.global_origin(global_origin)
         self.transform(transform)
+
+    @property
+    def last_rect(self) -> pygame.Rect:
+        return self._last_rect
 
     def container(self, container: tuple[float, float, float, float]):
         """Set the container within which objects can be aligned"""
@@ -105,4 +111,6 @@ class BoxAlign:
             relative
         ]
         pos = numpy.sum(combined, axis=0)
+
+        self._last_rect = pygame.Rect(pos, box)
         return tuple(pos)

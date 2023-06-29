@@ -11,11 +11,15 @@ from handy_display.widgets.BoxAlign import BoxAlign, Origin
 from handy_display.widgets.IWidget import *
 
 TIMEOUT_NS = 5_000_000_000  # 5 second timeout  #TODO Change weather timeout to >5s (revert from testing)
-THREAD_NAME = "weather_refresh_thread"
+THREAD_NAME = "weather_refresh_thread"#
 
-SUNNY_SPELLS = image("sunny_spells.bmp", 256, 256)
-CIRCLE_ARROW = image("circle_arrow.bmp", 256, 256)
-SUN_MOON = smooth_image("sun_moon.bmp", 128, 128)
+SAGE = (205, 195, 146)
+ALABASTER = (232, 229, 218)
+JORDY_BLUE = (158, 183, 229)
+CORNFLOWER_BLUE = (100, 141, 229)
+YInMn_BLUE = (48, 76, 137)
+
+BACKGROUND = smooth_image("weather/weather.bmp", 480, 320)
 
 ROBOTO_16 = font("Roboto/Roboto-Black.ttf", 16)
 
@@ -66,30 +70,7 @@ class WeatherWidget(IWidget):
                 self.gui.make_dirty()
 
     def draw(self, surf: pygame.surface.Surface):
-        surf.fill((55, 55, 55))
-
-        align_centre: BoxAlign = BoxAlign((0, 0) + surf.get_size()) \
-            .global_origin(Origin.CENTRE) \
-            .local_origin(Origin.CENTRE)
-
-        # Show time of day by rotation. 0300 @ 45deg
-        # Careful - this resizes the bounding box!!
-        sun_moon_rotated = pygame.transform.rotate(SUN_MOON, self.day_frac_elapsed * -360)
-        surf.blit(sun_moon_rotated, align_centre.apply_to(sun_moon_rotated.get_size()))
-
-        # Draw in the circular arrow
-        arrow_pos = align_centre.apply_to(CIRCLE_ARROW.get_size())
-        surf.blit(CIRCLE_ARROW, arrow_pos)
-
-        # Show temperature data
-        align_arrow_edge: BoxAlign = BoxAlign(arrow_pos + CIRCLE_ARROW.get_size())
-        align_arrow_edge.global_origin(Origin.CENTRE_RIGHT)
-        align_arrow_edge.local_origin(Origin.CENTRE_LEFT)
-
-        weather_text = self.open_weather_data["list"][0]["main"]["temp"] if self.open_weather_data is not None \
-            else "No data"
-        rendered_text = ROBOTO_16.render(str(weather_text), True, (255, 255, 255))
-        surf.blit(rendered_text, align_arrow_edge.apply_to(rendered_text.get_size()))
+        surf.blit(BACKGROUND, (0, 0))
 
     def on_hide(self):
         pass

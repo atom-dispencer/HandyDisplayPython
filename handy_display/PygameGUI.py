@@ -51,6 +51,14 @@ class PygameGUI:
                   "make sure you specified the 'headless' option to __main__.py")
             quit(-100)
 
+    @property
+    def current_widget_name(self):
+        return self._current_widget_name
+
+    @property
+    def widgets(self):
+        return self._widgets
+
     def add_widget(self, name: str, widget: IWidget):
         self._widgets[name] = widget
 
