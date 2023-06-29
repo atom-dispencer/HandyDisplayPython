@@ -1,7 +1,5 @@
 import datetime
 
-import numpy
-
 from handy_display.PygameLoaderHelper import *
 from handy_display.widgets.BoxAlign import BoxAlign, Origin
 from handy_display.widgets.IWidget import IWidget
@@ -56,6 +54,8 @@ class OverlayWidget(IWidget):
         self.verify_order()
 
         self.display_datetime = "??:?? - ??/??/??"
+        self.name_str = "__?__"
+        self.timing_str = "?.????/?.????"
 
     def verify_order(self):
         lst = self.config["widget_order"]
@@ -66,6 +66,7 @@ class OverlayWidget(IWidget):
                             "For example: ['test', 'weather', 'weather'], or ['test', 'weather', 'test']")
 
     def on_show(self):
+        self.name_str = self.gui.get_current_widget().display_name
         pass
 
     def handle_events(self, events: list[pygame.event.Event]):
@@ -77,6 +78,12 @@ class OverlayWidget(IWidget):
         if not self.display_datetime == datetime_str:
             self.display_datetime = datetime_str
             self.gui.make_dirty()
+
+            # Refresh timing data when time changes, i.e. about every second
+            self.timing_str = "{rt:<6.5f}/{dt:<6.5f}"\
+                .format(rt=self.gui.last_refresh_length, dt=self.gui.last_draw_length)
+
+        self.name_str = self.gui.get_current_widget().display_name
 
     def check_clicks(self, pos):
         x, y = pos
@@ -113,12 +120,11 @@ class OverlayWidget(IWidget):
         pos = align_bar_time.apply_to(text_render)
         surf.blit(text_render, pos)
 
-        text_render = ROBOTO_16.render("0.00011"[:5], True, (0, 0, 0))
+        text_render = ROBOTO_16.render(self.timing_str, True, (0, 0, 0))
         pos = align_bar_spf.apply_to(text_render)
         surf.blit(text_render, pos)
 
-        name = self.gui.get_current_widget().display_name
-        text_render = ROBOTO_16.render(name, True, (0, 0, 0))
+        text_render = ROBOTO_16.render(self.name_str, True, (0, 0, 0))
         pos = align_bar_name.apply_to(text_render)
         surf.blit(text_render, pos)
 

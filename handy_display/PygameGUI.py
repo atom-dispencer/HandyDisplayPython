@@ -1,4 +1,5 @@
 import os
+import time
 
 import PIL.Image
 import pygame
@@ -28,6 +29,10 @@ class PygameGUI:
         self.next_widget_name = None
         self._running = True
         self.overlay_dirty = True
+
+        self.last_refresh_time = 0.0
+        self.last_refresh_length = 0.0
+        self.last_draw_length = 0.0
 
         self.last_touch_epoch_secs = 0
         self.touch_timeout_secs = 0.5
@@ -95,6 +100,8 @@ class PygameGUI:
         """
         Do the next update and rendering cycle.
         Very complicated method.
+        Updates refresh length with the maximum value of each seen in the
+        last second.
 
         1) Switch in the next queued widget
         2) Handle events in the GUI itself
@@ -103,6 +110,7 @@ class PygameGUI:
         5) Send the screen to the mirror
         :return: Nothing.
         """
+        refresh_start = time.time()
         if not self._running:
             return
 
@@ -148,16 +156,25 @@ class PygameGUI:
         # Send the new screen to the mirror
         #
         if self.mirror.ready_for_next_frame():
+            draw_start = time.time()
+
             # Copy the pixels to a new buffer to avoid race conditions!
             img_bytes = pygame.image.tobytes(self.screen_surface, "RGB")
             pil_img = PIL.Image.frombytes(
                 "RGB", (self.mirror.width, self.mirror.height), img_bytes
             )
             self.mirror.next_frame(pil_img)
+
+            self.last_draw_length = time.time() - draw_start
         self.mirror.process_events()
 
         # Flip the display buffers (or something like that)
         pygame.display.flip()
+
+        length = time.time() - refresh_start
+        if length > self.last_refresh_length or time.time() - self.last_refresh_time > 1:
+            self.last_refresh_time = time.time()
+            self.last_refresh_length = length
 
     def shutdown(self):
         """
