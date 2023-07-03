@@ -1,5 +1,6 @@
 import datetime
 import json
+import math
 import threading
 import time
 
@@ -8,11 +9,10 @@ import requests
 
 from handy_display import Secrets
 from handy_display.PygameLoaderHelper import *
-from handy_display.widgets.BoxAlign import BoxAlign, Origin
 from handy_display.widgets.IWidget import *
 
 TIMEOUT_NS = 5_000_000_000  # 5 second timeout  #TODO Change weather timeout to >5s (revert from testing)
-THREAD_NAME = "weather_refresh_thread"#
+THREAD_NAME = "weather_refresh_thread"  #
 
 SAGE = (205, 195, 146)
 ALABASTER = (232, 229, 218)
@@ -22,9 +22,11 @@ YInMn_BLUE = (48, 76, 137)
 
 DARK_SAGE = (108, 106, 96)
 
+PERSISTENCE_DATE_FORMAT = "%d/%m/%Y"
+
 BACKGROUND = smooth_image("weather/weather.bmp", 480, 320)
 TODAY_BOUNDS = (50, 40, 190, 260)
-TODAY_DATA = smooth_image("weather/today_data.bmp", 161, 48)
+# TODAY_DATA = smooth_image("weather/today_data.bmp", 161, 48)
 # Bounds of data sections relative to the bounds of TODAY_DATA
 # Start at (65, 67) and transform by (0, -53) for each
 YESTERDAY_BOUNDS = (260, 50, 170, 130)
@@ -42,7 +44,7 @@ def draw_one_today(surf: pygame.surface.Surface, pos: tuple[float, float], temp:
     temp_pos = numpy.add(pos, (5, 0))
     wind_pos = numpy.add(pos, (5, 24))
 
-    surf.blit(TODAY_DATA, pos)
+    # surf.blit(TODAY_DATA, pos)
     surf.blit(temp_render, temp_pos)
     surf.blit(wind_render, wind_pos)
 
@@ -53,22 +55,21 @@ class WeatherWidget(IWidget):
     DEFAULT_CONFIG = {
         "lat": "51.4838968",
         "lon": "-0.6043911",
-        "cnt": "4",  # Limit number of timestamps to be returned.
         # "units": "standard",  # standard=K, imperial=F, metric=C, K is default
         # "mode": "xml",  # JSON is default
         # "lang": "en",  # Response language
-        "today": [
-            {"temp": -273.15, "wind": -1},
-            {"temp": -273.15, "wind": -1},
-            {"temp": -273.15, "wind": -1},
-            {"temp": -273.15, "wind": -1},
-        ],
-        "yesterday": [
-            {"temp": -273.15},
-            {"temp": -273.15},
-            {"temp": -273.15},
-            {"temp": -273.15},
-        ]
+        "today": {
+            "date": "1/1/1970",
+            "max_temp": [-273.15, -273.15, -273.15, -273.15],
+            "max_wind": [-1, -1, -1, -1],
+            "avg_visibility": -1,
+        },
+        "yesterday": {
+            "date": "31/12/1969",
+            "max_temp": [-273.15, -273.15, -273.15, -273.15],
+            "max_wind": [-1, -1, -1, -1],
+            "avg_visibility": -1,
+        }
     }
 
     def __init__(self, gui):
@@ -107,8 +108,8 @@ class WeatherWidget(IWidget):
 
         pos = (65, 67)
         for i in range(4):
-            temp = self.config["today"][i]["temp"]
-            wind = self.config["today"][i]["wind"]
+            temp = self.config["today"]["max_temp"][i]
+            wind = self.config["today"]["max_wind"][i]
             draw_one_today(surf, pos, temp, wind)
             pos = numpy.add(pos, (0, 53))
 
@@ -118,25 +119,54 @@ class WeatherWidget(IWidget):
 
     def update_info(self):
         try:
-            print("Fetching new data from OpenWeather")
 
-            key = Secrets.get_weather_api_key()
-            url = "http://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&cnt={cnt}&appid={appid}" \
-                .format(
-                    lat=self.config["lat"],
-                    lon=self.config["lon"],
-                    cnt=self.config["cnt"],
-                    appid=key
-                )
-            response = requests.get(url, timeout=10)
+            #
+            # Calculate the number of data points to get
+            #
+            # 4 if time <= 0300
+            # 3 if 0300 < t <= 0900
+            # 2 if 0900 < t <= 1500
+            # 1 if 1500 < t <= 2100
+            adj_hour = datetime.datetime.utcnow().hour + 3  # Adjusted hour
+            cnt = 4 - math.floor((adj_hour if adj_hour < 24 else adj_hour - 24) / 6)
 
-            if response is None or response.status_code != 200:
-                print("Error getting new OpenWeather data!")
-                print(str(response))
-            print("Got OpenWeather reply: ", response.content)
+            #
+            # Get new data from OpenWeather
+            #
+            if cnt > 0:
+                print("Fetching new OpenWeather data...")
+                key = Secrets.get_weather_api_key()
+                url = "http://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&cnt={cnt}&appid={appid}" \
+                    .format(lat=self.config["lat"], lon=self.config["lon"], cnt=cnt, appid=key)
+                response = requests.get(url, timeout=10)
 
-            json_content = json.loads(response.content)
-            self.open_weather_data = json_content
+                if response is None or response.status_code != 200:
+                    print("Error getting new OpenWeather data!")
+                    print(str(response))
+                print("Got OpenWeather reply: ", response.content)
+
+                json_content = json.loads(response.content)
+                self.open_weather_data = json_content
+
+                #
+                # Update self.config values
+                #
+                visibilities = []
+                for i in range(cnt):
+                    self.config["today"]["max_temp"][i + (4 - cnt)] = self.open_weather_data["list"][i]["main"][
+                        "temp_max"]
+                    self.config["today"]["max_wind"][i + (4 - cnt)] = self.open_weather_data["list"][i]["wind"]["gust"]
+                    visibilities.append(self.open_weather_data["list"][i]["visibility"])
+                self.config["today"]["avg_visibility"] = sum(visibilities) // 4000  # /4 to get avg, /1000 to get km
+                today_date_str = datetime.datetime.now().strftime(PERSISTENCE_DATE_FORMAT)
+                self.config["today"]["date"] = today_date_str
+
+            else:
+                print("Not collecting OpenWeather data! End of the day, so rolling over...")
+                # Roll self.config onto next day
+                self.config["yesterday"] = self.config["today"]
+
+            self.config.save()
 
         except requests.RequestException as re:
             print("An error occurred while making the HTTP request to the OpenWeather API")

@@ -80,7 +80,7 @@ class OverlayWidget(IWidget):
             self.gui.make_dirty()
 
             # Refresh timing data when time changes, i.e. about every second
-            self.timing_str = "{rt:<6.5f}/{dt:<6.5f}"\
+            self.timing_str = "{rt:<6.5f}/{dt:<6.5f}" \
                 .format(rt=self.gui.last_refresh_length, dt=self.gui.last_draw_length)
 
         self.name_str = self.gui.get_current_widget().display_name

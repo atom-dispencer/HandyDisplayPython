@@ -64,12 +64,7 @@ class Config:
         :return: Nothing.
         """
 
-        needs_saving = False
-        for k, v in self._default.items():
-            if k not in self._entries:
-                self._entries[k] = v
-                needs_saving = True
-        if needs_saving:
+        if not self._default == self._entries:
             with open(self._path, 'w') as config:
                 contents = json.dumps(self._entries, indent=4)
                 config.write(contents)

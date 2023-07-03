@@ -15,7 +15,7 @@ class TestWidget(IWidget):
     }
 
     def __init__(self, gui):
-        super().__init__(gui, self.INTERNAL_NAME, self.DISPLAY_NAME , self.DEFAULT_CONFIG)
+        super().__init__(gui, self.INTERNAL_NAME, self.DISPLAY_NAME, self.DEFAULT_CONFIG)
         self.bg_color = (255, 255, 255)
 
         self.group = Group()
